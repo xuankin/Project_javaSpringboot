@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<nav th:replace="~{fragments/header :: header}"></nav>
+
+<div class="container mt-5">
+    <h2>Lịch sử giao dịch</h2>
+    <div class="table-responsive mt-3">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Mã GD</th>
+                <th>Đơn hàng</th>
+                <th>Số tiền</th>
+                <th>Phương thức</th>
+                <th>Ngày thanh toán</th>
+                <th>Trạng thái</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${payments}">
+                <td th:text="${p.transactionId}"></td>
+                <td><a th:href="@{/orders/{id}(id=${p.orderId})}" th:text="${p.orderCode}"></a></td>
+                <td th:text="${#numbers.formatDecimal(p.amount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                <td th:text="${p.method}"></td>
+                <td th:text="${#temporals.format(p.paymentDate, 'dd-MM-yyyy HH:mm')}"></td>
+                <td><span class="badge bg-success" th:text="${p.paymentStatus}"></span></td>
+            </tr>
+            </tbody>
+        </table>
+        <div th:if="${payments.empty}" class="text-center text-muted mt-3">Chưa có giao dịch nào.</div>
+    </div>
+</div>
+</body>
+</html>

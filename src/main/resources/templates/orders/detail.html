@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<nav th:replace="~{fragments/header :: header}"></nav>
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Đơn hàng <span th:text="${order.orderCode}"></span></h2>
+        <div>
+            <span class="badge fs-5"
+                  th:classappend="${order.status == 'COMPLETED' ? 'bg-success' : (order.status == 'PENDING' ? 'bg-warning' : 'bg-secondary')}"
+                  th:text="${order.status}"></span>
+        </div>
+    </div>
+
+    <div th:if="${order.status == 'PENDING' || order.status == 'CONFIRMED'}" class="alert alert-info d-flex justify-content-between align-items-center">
+        <span>Đơn hàng chưa thanh toán xong.</span>
+        <a th:href="@{/payments/create/{id}(id=${order.id})}" class="btn btn-primary">Thanh toán ngay</a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">Chi tiết xe thuê</div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Xe</th>
+                    <th>Thời gian</th>
+                    <th>Giá</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="d : ${order.orderDetails}">
+                    <td>
+                        <strong th:text="${d.vehicleName}"></strong>
+                        <br><img th:src="${d.vehicleImage}" width="60" class="img-thumbnail mt-1">
+                    </td>
+                    <td>
+                        <span th:text="${d.startDate}"></span> <i class="fas fa-arrow-right"></i> <span th:text="${d.endDate}"></span>
+                        <br><small class="text-muted" th:text="'(' + ${d.rentalDays} + ' ngày)'"></small>
+                    </td>
+                    <td th:text="${#numbers.formatDecimal(d.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                </tr>
+                </tbody>
+            </table>
+            <h4 class="text-end mt-3">Tổng cộng: <span class="text-danger" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span></h4>
+        </div>
+    </div>
+
+    <form th:if="${order.status == 'PENDING'}" th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post" class="text-end">
+        <button class="btn btn-outline-danger" onclick="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?')">Hủy đơn hàng</button>
+    </form>
+</div>
+</body>
+</html>

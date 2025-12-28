@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout_admin :: layout(~{::div})}">
+<body>
+<div>
+    <h2 class="mb-4">Quản lý Đơn hàng</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Ngày tạo</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${orders}">
+                    <td th:text="${order.orderCode}">ORD001</td>
+                    <td>
+                        <div th:text="${order.userName}">User</div>
+                        <small class="text-muted" th:text="${order.userEmail}">email@example.com</small>
+                    </td>
+                    <td th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
+                    <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT')}"></td>
+                    <td>
+                                <span class="badge"
+                                      th:classappend="${order.status == 'COMPLETED' ? 'bg-success' : (order.status == 'PENDING' ? 'bg-warning' : (order.status == 'CANCELLED' ? 'bg-danger' : 'bg-primary'))}"
+                                      th:text="${order.status}"></span>
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn btn-sm btn-info text-white">Chi tiết</a>
+
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                Update
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <form th:action="@{/admin/orders/{id}/update-status(id=${order.id})}" method="post">
+                                        <input type="hidden" name="status" value="CONFIRMED">
+                                        <button class="dropdown-item">Xác nhận</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form th:action="@{/admin/orders/{id}/update-status(id=${order.id})}" method="post">
+                                        <input type="hidden" name="status" value="COMPLETED">
+                                        <button class="dropdown-item">Hoàn thành</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form th:action="@{/admin/orders/{id}/update-status(id=${order.id})}" method="post">
+                                        <input type="hidden" name="status" value="CANCELLED">
+                                        <button class="dropdown-item text-danger">Hủy đơn</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

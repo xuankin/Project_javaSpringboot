@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<nav th:replace="~{fragments/header :: header}"></nav>
+
+<div class="container mt-5">
+    <h2 class="mb-4">Đơn hàng của tôi</h2>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+            <tr>
+                <th>Mã đơn</th>
+                <th>Ngày đặt</th>
+                <th>Xe thuê</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="order : ${orders}">
+                <td class="fw-bold" th:text="${order.orderCode}"></td>
+                <td th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy')}"></td>
+                <td>
+                    <ul class="list-unstyled mb-0">
+                        <li th:each="detail : ${order.orderDetails}" th:text="${detail.vehicleName}"></li>
+                    </ul>
+                </td>
+                <td th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                <td>
+                        <span class="badge"
+                              th:classappend="${order.status == 'COMPLETED' ? 'bg-success' : (order.status == 'PENDING' ? 'bg-warning' : 'bg-secondary')}"
+                              th:text="${order.status}"></span>
+                </td>
+                <td>
+                    <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-sm btn-info text-white">Chi tiết</a>
+
+                    <a th:if="${order.status == 'PENDING' || order.status == 'CONFIRMED'}"
+                       th:href="@{/payments/create/{id}(id=${order.id})}"
+                       class="btn btn-sm btn-primary">Thanh toán</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

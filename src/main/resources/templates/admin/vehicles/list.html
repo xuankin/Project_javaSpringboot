@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout_admin :: layout(~{::div})}">
+<body>
+<div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Quản lý Xe</h2>
+        <a href="/admin/vehicles/create" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm xe mới</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Ảnh</th>
+                    <th>Tên xe</th>
+                    <th>Biển số</th>
+                    <th>Giá thuê/ngày</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="vehicle : ${vehicles}">
+                    <td th:text="${vehicle.id}">1</td>
+                    <td><img th:src="${vehicle.primaryImageUrl}" width="80" class="img-thumbnail"></td>
+                    <td>
+                        <strong th:text="${vehicle.name}">Honda Vision</strong><br>
+                        <small class="text-muted" th:text="${vehicle.brand} + ' - ' + ${vehicle.year}"></small>
+                    </td>
+                    <td th:text="${vehicle.licensePlate}">29A1-12345</td>
+                    <td th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'COMMA', 0, 'POINT')}">150,000</td>
+                    <td>
+                                <span class="badge"
+                                      th:classappend="${vehicle.status == 'AVAILABLE' ? 'bg-success' : (vehicle.status == 'RENTED' ? 'bg-warning' : 'bg-secondary')}"
+                                      th:text="${vehicle.status}">Available</span>
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/vehicles/edit/{id}(id=${vehicle.id})}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                        <form th:action="@{/admin/vehicles/delete/{id}(id=${vehicle.id})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa xe này?');">
+                            <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<nav th:replace="~{fragments/header :: header}"></nav>
+
+<div class="container mt-5">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <img th:src="${vehicle.primaryImageUrl}" class="img-fluid rounded mb-3" alt="Main Image">
+            <div class="d-flex gap-2 overflow-auto">
+                <img th:each="img : ${vehicle.imageUrls}" th:src="${img}" class="img-thumbnail" style="width: 100px; height: 80px; object-fit: cover;">
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h2 th:text="${vehicle.name}">Tên xe</h2>
+            <h4 class="text-danger" th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'COMMA', 0, 'POINT')} + ' VNĐ/ngày'">Price</h4>
+            <p th:text="${vehicle.description}">Mô tả</p>
+            <ul>
+                <li>Hãng: <span th:text="${vehicle.brand}"></span></li>
+                <li>Năm sản xuất: <span th:text="${vehicle.year}"></span></li>
+                <li>Biển số: <span th:text="${vehicle.licensePlate}"></span></li>
+            </ul>
+
+            <div class="alert alert-warning" th:if="${!schedule.empty}">
+                <strong>Lịch xe bận (Đã được đặt):</strong>
+                <ul>
+                    <li th:each="s : ${schedule}">
+                        <span th:text="${s.startDate}"></span> đến <span th:text="${s.endDate}"></span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card p-3 bg-light">
+                <form action="/cart/add" method="post">
+                    <input type="hidden" name="vehicleId" th:value="${vehicle.id}">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Ngày nhận:</label>
+                            <input type="date" name="startDate" class="form-control" required>
+                        </div>
+                        <div class="col">
+                            <label>Ngày trả:</label>
+                            <input type="date" name="endDate" class="form-control" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <h3>Đánh giá xe</h3>
+        <div th:each="fb : ${feedbacks}" class="card mb-2">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted" th:text="${fb.userName} + ' - ' + ${fb.rating} + ' sao'">User</h6>
+                <p class="card-text" th:text="${fb.content}">Nội dung</p>
+            </div>
+        </div>
+
+        <div class="mt-3"   sec:authorize="isAuthenticated()">
+            <h5>Viết đánh giá của bạn</h5>
+            <form action="/feedbacks/create" method="post" th:object="${feedback}">
+                <input type="hidden" name="vehicleId" th:value="${vehicle.id}">
+                <div class="mb-2">
+                    <label>Số sao:</label>
+                    <select name="rating" class="form-select w-25">
+                        <option value="5">5 Sao</option>
+                        <option value="4">4 Sao</option>
+                        <option value="3">3 Sao</option>
+                        <option value="2">2 Sao</option>
+                        <option value="1">1 Sao</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <textarea name="content" class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

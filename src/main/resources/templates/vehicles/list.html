@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<nav th:replace="~{fragments/header :: header}"></nav>
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Danh sách xe máy</h2>
+        </div>
+        <div class="col-md-4">
+            <form action="/vehicles" method="get" class="d-flex">
+                <input class="form-control me-2" type="search" name="search" th:value="${search}" placeholder="Tìm xe, hãng...">
+                <button class="btn btn-outline-primary" type="submit">Tìm</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col" th:each="vehicle : ${vehicles}">
+            <div class="card h-100 shadow-sm border-0">
+                <img th:src="${vehicle.primaryImageUrl}" class="card-img-top" style="height: 220px; object-fit: cover;" alt="Xe">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${vehicle.name}">Xe</h5>
+                    <p class="card-text text-muted" th:text="${vehicle.brand} + ' • ' + ${vehicle.year}"></p>
+                    <h5 class="text-danger fw-bold" th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'COMMA', 0, 'POINT')} + ' đ/ngày'"></h5>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <a th:href="@{/vehicles/{id}(id=${vehicle.id})}" class="btn btn-outline-dark">Xem chi tiết</a>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top-0 d-flex justify-content-between">
+                    <small class="text-muted"><i class="fas fa-star text-warning"></i> <span th:text="${vehicle.averageRating}">5.0</span></small>
+                    <small class="text-success" th:if="${vehicle.status == 'AVAILABLE'}">Sẵn sàng</small>
+                    <small class="text-danger" th:if="${vehicle.status != 'AVAILABLE'}">Hết xe</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${vehicles.empty}" class="text-center mt-5">
+        <p class="text-muted fs-4">Không tìm thấy xe nào phù hợp.</p>
+    </div>
+</div>
+</body>
+</html>

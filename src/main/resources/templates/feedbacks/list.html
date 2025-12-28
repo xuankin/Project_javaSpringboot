@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout_admin :: layout(~{::div})}">
+<body>
+<div>
+    <h2 class="mb-4">Quản lý Đánh giá</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Xe</th>
+                    <th>Người dùng</th>
+                    <th>Điểm</th>
+                    <th>Nội dung</th>
+                    <th>Ngày tạo</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="fb : ${feedbacks}">
+                    <td th:text="${fb.id}"></td>
+                    <td><a th:href="@{/vehicles/{id}(id=${fb.vehicleId})}" th:text="${fb.vehicleName}">Xe</a></td>
+                    <td th:text="${fb.userName}">User</td>
+                    <td><span class="text-warning fw-bold" th:text="${fb.rating} + ' ★'"></span></td>
+                    <td th:text="${fb.content}">Nội dung...</td>
+                    <td th:text="${#temporals.format(fb.createdAt, 'dd-MM-yyyy')}"></td>
+                    <td>
+                        <form th:action="@{/admin/feedbacks/delete/{id}(id=${fb.id})}" method="post" onsubmit="return confirm('Xóa đánh giá này?');">
+                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

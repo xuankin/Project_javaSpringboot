@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<nav th:replace="~{fragments/header :: header}"></nav>
+
+<div class="container mt-5">
+    <h2>Giỏ hàng của bạn</h2>
+
+    <div th:if="${cart == null || cart.items.empty}" class="alert alert-info">Giỏ hàng trống!</div>
+
+    <div th:if="${cart != null && !cart.items.empty}">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Xe</th>
+                <th>Ngày nhận</th>
+                <th>Ngày trả</th>
+                <th>Giá/ngày</th>
+                <th>Thành tiền</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${cart.items}">
+                <td>
+                    <img th:src="${item.vehicleImage}" width="50" class="me-2">
+                    <span th:text="${item.vehicleName}"></span>
+                </td>
+                <td th:text="${item.startDate}"></td>
+                <td th:text="${item.endDate}"></td>
+                <td th:text="${#numbers.formatDecimal(item.pricePerDay, 0, 'COMMA', 0, 'POINT')}"></td>
+                <td th:text="${#numbers.formatDecimal(item.totalPrice, 0, 'COMMA', 0, 'POINT')}"></td>
+                <td>
+                    <form th:action="@{/cart/remove/{id}(id=${item.id})}" method="post">
+                        <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>Tổng cộng: <span class="text-danger" th:text="${#numbers.formatDecimal(cart.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span></h4>
+            <div>
+                <form action="/cart/clear" method="post" class="d-inline">
+                    <button class="btn btn-outline-secondary me-2">Xóa hết</button>
+                </form>
+                <a href="/checkout" class="btn btn-success btn-lg">Tiến hành đặt xe</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
