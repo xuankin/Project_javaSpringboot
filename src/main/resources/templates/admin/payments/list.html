@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
+<body>
+<section>
+    <h2 class="mb-4">Quản lý Thanh toán</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Đơn hàng</th>
+                    <th>Số tiền</th>
+                    <th>Phương thức</th>
+                    <th>Ngày thanh toán</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="payment : ${payments}">
+                    <td th:text="${payment.id}"></td>
+                    <td th:text="${'#' + payment.order.id}"></td>
+                    <td th:text="${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
+                    <td th:text="${payment.paymentMethod}"></td>
+                    <td th:text="${payment.paymentDate}"></td>
+                    <td>
+                        <form th:if="${payment.paymentMethod.name() == 'CASH'}"
+                              th:action="@{/admin/payments/{orderId}/confirm-cash(orderId=${payment.order.id})}"
+                              method="post">
+                            <button class="btn btn-sm btn-success">Xác nhận đã thu tiền</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+</body>
+</html>

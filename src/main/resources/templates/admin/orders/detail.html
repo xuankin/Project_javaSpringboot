@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout_admin :: layout(~{::div})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
 <body>
-<div>
+<section>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Chi tiết đơn hàng: <span class="text-primary" th:text="${order.orderCode}"></span></h2>
+        <h2>Chi tiết đơn hàng: <span class="text-primary" th:text="${'#' + order.id}"></span></h2>
         <a href="/admin/orders" class="btn btn-outline-secondary">Quay lại</a>
     </div>
 
@@ -26,20 +27,19 @@
                         <tbody>
                         <tr th:each="detail : ${order.orderDetails}">
                             <td>
-                                <div class="fw-bold" th:text="${detail.vehicleName}">Vehicle Name</div>
+                                <div class="fw-bold" th:text="${detail.vehicle.name}">Vehicle Name</div>
                             </td>
                             <td>
-                                <div th:text="${detail.startDate} + ' đến ' + ${detail.endDate}"></div>
-                                <small class="text-muted" th:text="'(' + ${detail.rentalDays} + ' ngày)'"></small>
+                                <div th:text="${detail.rentalStartDate} + ' đến ' + ${detail.rentalEndDate}"></div>
                             </td>
-                            <td th:text="${#numbers.formatDecimal(detail.pricePerDay, 0, 'COMMA', 0, 'POINT')}"></td>
-                            <td class="fw-bold" th:text="${#numbers.formatDecimal(detail.totalPrice, 0, 'COMMA', 0, 'POINT')}"></td>
+                            <td th:text="${#numbers.formatDecimal(detail.pricePerDay, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
+                            <td class="fw-bold" th:text="${#numbers.formatDecimal(detail.totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
                         </tr>
                         </tbody>
                         <tfoot>
                         <tr>
                             <td colspan="3" class="text-end fw-bold">Tổng cộng:</td>
-                            <td class="fw-bold text-danger fs-5" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td class="fw-bold text-danger fs-5" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
                         </tr>
                         </tfoot>
                     </table>
@@ -53,26 +53,9 @@
                     <h6 class="mb-0">Thông tin khách hàng</h6>
                 </div>
                 <div class="card-body">
-                    <p class="mb-1"><strong>Họ tên:</strong> <span th:text="${order.userName}"></span></p>
-                    <p class="mb-1"><strong>Email:</strong> <span th:text="${order.userEmail}"></span></p>
-                    <p class="mb-0"><strong>Ghi chú:</strong> <span th:text="${order.notes != null ? order.notes : 'Không có'}"></span></p>
-                </div>
-            </div>
-
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0">Thanh toán</h6>
-                </div>
-                <div class="card-body" th:if="${order.payment != null}">
-                    <p class="mb-1">Phương thức: <strong th:text="${order.payment.method}"></strong></p>
-                    <p class="mb-1">Trạng thái:
-                        <span class="badge" th:classappend="${order.payment.paymentStatus == 'COMPLETED' ? 'bg-success' : 'bg-warning'}"
-                              th:text="${order.payment.paymentStatus}"></span>
-                    </p>
-                    <p class="mb-0" th:if="${order.payment.transactionId}">Mã GD: <code th:text="${order.payment.transactionId}"></code></p>
-                </div>
-                <div class="card-body text-center" th:if="${order.payment == null}">
-                    <span class="text-muted">Chưa có thông tin thanh toán</span>
+                    <p class="mb-1"><strong>Họ tên:</strong> <span th:text="${order.user.fullName}"></span></p>
+                    <p class="mb-1"><strong>Email:</strong> <span th:text="${order.user.email}"></span></p>
+                    <p class="mb-0"><strong>Ghi chú:</strong> <span th:text="${order.note != null ? order.note : 'Không có'}"></span></p>
                 </div>
             </div>
 
@@ -83,16 +66,16 @@
                 <div class="card-body">
                     <form th:action="@{/admin/orders/{id}/update-status(id=${order.id})}" method="post">
                         <select name="status" class="form-select mb-3" onchange="this.form.submit()">
-                            <option value="PENDING" th:selected="${order.status == 'PENDING'}">Chờ duyệt (Pending)</option>
-                            <option value="CONFIRMED" th:selected="${order.status == 'CONFIRMED'}">Đã xác nhận (Confirmed)</option>
-                            <option value="COMPLETED" th:selected="${order.status == 'COMPLETED'}">Hoàn thành (Completed)</option>
-                            <option value="CANCELLED" th:selected="${order.status == 'CANCELLED'}">Đã hủy (Cancelled)</option>
+                            <option value="PENDING" th:selected="${order.status.name() == 'PENDING'}">Chờ duyệt</option>
+                            <option value="CONFIRMED" th:selected="${order.status.name() == 'CONFIRMED'}">Đã xác nhận</option>
+                            <option value="COMPLETED" th:selected="${order.status.name() == 'COMPLETED'}">Hoàn thành</option>
+                            <option value="CANCELLED" th:selected="${order.status.name() == 'CANCELLED'}">Đã hủy</option>
                         </select>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 </body>
 </html>

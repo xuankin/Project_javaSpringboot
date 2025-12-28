@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout_admin :: layout(~{::div})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
 <body>
-<div>
+<section>
     <h2 class="mb-4">Quản lý Đơn hàng</h2>
     <div class="card shadow-sm">
         <div class="card-body">
-            <table class="table table-bordered">
+            <table class="table table-bordered align-middle">
                 <thead class="table-light">
                 <tr>
                     <th>Mã đơn</th>
@@ -18,20 +19,24 @@
                 </thead>
                 <tbody>
                 <tr th:each="order : ${orders}">
-                    <td th:text="${order.orderCode}">ORD001</td>
+                    <td th:text="${'#' + order.id}">ORD001</td>
                     <td>
-                        <div th:text="${order.userName}">User</div>
-                        <small class="text-muted" th:text="${order.userEmail}">email@example.com</small>
+                        <div th:text="${order.user.fullName}">User</div>
+                        <small class="text-muted" th:text="${order.user.email}">email@example.com</small>
                     </td>
-                    <td th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
-                    <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT')}"></td>
+                    <td th:text="${order.createdAt}"></td>
+                    <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
                     <td>
-                                <span class="badge"
-                                      th:classappend="${order.status == 'COMPLETED' ? 'bg-success' : (order.status == 'PENDING' ? 'bg-warning' : (order.status == 'CANCELLED' ? 'bg-danger' : 'bg-primary'))}"
-                                      th:text="${order.status}"></span>
+                        <span class="badge"
+                              th:classappend="${
+                                order.status.name() == 'COMPLETED' ? 'bg-success' :
+                                (order.status.name() == 'PENDING' ? 'bg-warning text-dark' :
+                                (order.status.name() == 'CANCELLED' ? 'bg-danger' : 'bg-primary'))
+                              }"
+                              th:text="${order.status}"></span>
                     </td>
                     <td>
-                        <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn btn-sm btn-info text-white">Chi tiết</a>
+                        <a th:href="@{/admin/orders/detail/{id}(id=${order.id})}" class="btn btn-sm btn-info text-white">Chi tiết</a>
 
                         <div class="btn-group">
                             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
@@ -64,6 +69,6 @@
             </table>
         </div>
     </div>
-</div>
+</section>
 </body>
 </html>

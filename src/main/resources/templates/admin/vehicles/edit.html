@@ -1,76 +1,81 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout_admin :: layout(~{::div})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
 <body>
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-warning text-dark">
-                <h4 class="mb-0">Cập nhật thông tin xe</h4>
-            </div>
-            <div class="card-body">
-                <form th:action="@{/admin/vehicles/edit/{id}(id=${vehicle.id})}" method="post" enctype="multipart/form-data" th:object="${vehicle}">
+<section>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">Cập nhật thông tin xe</h4>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/admin/vehicles/edit/{id}(id=${vehicle.id})}" method="post" enctype="multipart/form-data" th:object="${vehicle}">
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Tên xe</label>
-                            <input type="text" th:field="*{name}" class="form-control" required>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Tên xe</label>
+                                <input type="text" th:field="*{name}" class="form-control" required>
+                                <div class="text-danger small" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Biển số</label>
+                                <input type="text" th:field="*{licensePlate}" class="form-control" required>
+                                <div class="text-danger small" th:if="${#fields.hasErrors('licensePlate')}" th:errors="*{licensePlate}"></div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Biển số</label>
-                            <input type="text" th:field="*{licensePlate}" class="form-control" required>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Hãng</label>
+                                <input type="text" th:field="*{brand}" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Model</label>
+                                <input type="text" th:field="*{model}" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Trạng thái</label>
+                                <select th:field="*{status}" class="form-select">
+                                    <option value="AVAILABLE">Sẵn sàng</option>
+                                    <option value="RENTED">Đang thuê</option>
+                                    <option value="UNAVAILABLE">Không khả dụng</option>
+                                    <option value="MAINTENANCE">Bảo trì</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Hãng</label>
-                            <input type="text" th:field="*{brand}" class="form-control">
+                        <div class="mb-3">
+                            <label class="form-label">Giá thuê (VNĐ/ngày)</label>
+                            <input type="number" th:field="*{pricePerDay}" class="form-control" required>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Model</label>
-                            <input type="text" th:field="*{model}" class="form-control">
+
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả</label>
+                            <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Trạng thái</label>
-                            <select th:field="*{status}" class="form-select">
-                                <option value="AVAILABLE">Sẵn sàng</option>
-                                <option value="RENTED">Đang thuê</option>
-                                <option value="UNAVAILABLE">Không khả dụng</option>
-                                <option value="MAINTENANCE">Bảo trì</option>
-                            </select>
+
+                        <div class="mb-3" th:if="${not #lists.isEmpty(vehicle.imageUrls)}">
+                            <label class="form-label">Ảnh hiện tại:</label>
+                            <div class="d-flex gap-2">
+                                <img th:each="img : ${vehicle.imageUrls}" th:src="${img}" width="100" class="img-thumbnail">
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Giá thuê (VNĐ/ngày)</label>
-                        <input type="number" th:field="*{pricePerDay}" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Mô tả</label>
-                        <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
-                    </div>
-
-                    <div class="mb-3" th:if="${not #lists.isEmpty(vehicle.imageUrls)}">
-                        <label class="form-label">Ảnh hiện tại:</label>
-                        <div class="d-flex gap-2">
-                            <img th:each="img : ${vehicle.imageUrls}" th:src="${img}" width="100" class="img-thumbnail">
+                        <div class="mb-3">
+                            <label class="form-label">Tải lên ảnh mới (Sẽ thêm vào danh sách ảnh)</label>
+                            <input type="file" name="imageFiles" class="form-control" multiple accept="image/*">
                         </div>
-                    </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Tải lên ảnh mới (Sẽ thêm vào danh sách ảnh)</label>
-                        <input type="file" name="images" class="form-control" multiple accept="image/*">
-                    </div>
-
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="/admin/vehicles" class="btn btn-secondary">Hủy</a>
-                        <button type="submit" class="btn btn-warning">Cập nhật</button>
-                    </div>
-                </form>
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/admin/vehicles" class="btn btn-secondary">Hủy</a>
+                            <button type="submit" class="btn btn-warning">Cập nhật</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 </body>
 </html>

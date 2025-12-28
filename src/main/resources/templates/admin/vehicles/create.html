@@ -1,63 +1,73 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout_admin :: layout(~{::div})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
 <body>
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Thêm xe mới</h4>
-            </div>
-            <div class="card-body">
-                <form action="/admin/vehicles/create" method="post" enctype="multipart/form-data" th:object="${vehicle}">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Tên xe</label>
-                            <input type="text" th:field="*{name}" class="form-control" required>
+<section>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Thêm xe mới</h4>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/admin/vehicles/create}" method="post" enctype="multipart/form-data" th:object="${vehicle}">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Tên xe</label>
+                                <input type="text" th:field="*{name}" class="form-control" required>
+                                <div class="text-danger small" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Biển số</label>
+                                <input type="text" th:field="*{licensePlate}" class="form-control" required>
+                                <div class="text-danger small" th:if="${#fields.hasErrors('licensePlate')}" th:errors="*{licensePlate}"></div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Biển số</label>
-                            <input type="text" th:field="*{licensePlate}" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Hãng</label>
-                            <input type="text" th:field="*{brand}" class="form-control">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Dòng xe (Model)</label>
-                            <input type="text" th:field="*{model}" class="form-control">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Năm sản xuất</label>
-                            <input type="number" th:field="*{year}" class="form-control">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Giá thuê (VNĐ/ngày)</label>
-                        <input type="number" th:field="*{pricePerDay}" class="form-control" required min="0">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Mô tả</label>
-                        <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Màu sắc</label>
-                        <input type="text" th:field="*{color}" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Hình ảnh (Chọn nhiều ảnh)</label>
-                        <input type="file" name="images" class="form-control" multiple accept="image/*">
-                    </div>
 
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="/admin/vehicles" class="btn btn-secondary">Hủy</a>
-                        <button type="submit" class="btn btn-success">Lưu xe</button>
-                    </div>
-                </form>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Hãng</label>
+                                <input type="text" th:field="*{brand}" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Dòng xe (Model)</label>
+                                <input type="text" th:field="*{model}" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Năm sản xuất</label>
+                                <input type="number" th:field="*{year}" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Giá thuê (VNĐ/ngày)</label>
+                            <input type="number" th:field="*{pricePerDay}" class="form-control" required min="0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả</label>
+                            <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Màu sắc</label>
+                            <input type="text" th:field="*{color}" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Hình ảnh (Chọn nhiều ảnh)</label>
+                            <input type="file" name="imageFiles" class="form-control" multiple accept="image/*">
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/admin/vehicles" class="btn btn-secondary">Hủy</a>
+                            <button type="submit" class="btn btn-success">Lưu xe</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 </body>
 </html>

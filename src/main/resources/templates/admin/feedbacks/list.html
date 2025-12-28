@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
+<body>
+<section>
+    <h2 class="mb-4">Quản lý Đánh giá</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Khách hàng</th>
+                    <th>Xe</th>
+                    <th>Điểm</th>
+                    <th>Nội dung</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="fb : ${feedbacks}">
+                    <td th:text="${fb.id}"></td>
+                    <td th:text="${fb.user.fullName}"></td>
+                    <td th:text="${fb.vehicle.name}"></td>
+                    <td th:text="${fb.rating} + '/5'"></td>
+                    <td th:text="${fb.comment}"></td>
+                    <td>
+                        <form th:action="@{/admin/feedbacks/delete/{id}(id=${fb.id})}" method="post"
+                              onsubmit="return confirm('Xóa đánh giá này?');">
+                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+</body>
+</html>

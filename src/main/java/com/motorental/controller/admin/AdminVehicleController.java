@@ -15,34 +15,33 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@RequestMapping("/admin/vehicles") // SỬA: Bỏ "templates/"
+@RequestMapping("/admin/vehicles")
 @RequiredArgsConstructor
 public class AdminVehicleController {
 
     private final VehicleService vehicleService;
 
-    // Danh sách xe (Admin view)
     @GetMapping
     public String list(Model model) {
         model.addAttribute("vehicles", vehicleService.searchVehicles("", null, Pageable.unpaged()).getContent());
-        return "admin/vehicles/list"; // SỬA: Bỏ "templates/"
+        return "admin/vehicles/list";
     }
 
-    // Form tạo mới
     @GetMapping("/create")
     public String createForm(Model model) {
         model.addAttribute("vehicle", new VehicleDto());
-        return "admin/vehicles/form"; // SỬA: Bỏ "templates/"
+        return "admin/vehicles/create";
     }
 
-    // Xử lý tạo mới
     @PostMapping("/create")
     public String save(@Valid @ModelAttribute("vehicle") VehicleDto dto,
                        BindingResult result,
                        @RequestParam("imageFiles") List<MultipartFile> imageFiles,
                        RedirectAttributes redirectAttributes,
                        Model model) {
-        if (result.hasErrors()) return "admin/vehicles/form"; // SỬA
+        if (result.hasErrors()) {
+            return "admin/vehicles/create";
+        }
 
         try {
             vehicleService.createVehicle(dto, imageFiles);
@@ -50,33 +49,37 @@ public class AdminVehicleController {
             return "redirect:/admin/vehicles";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
-            return "admin/vehicles/form"; // SỬA
+            return "admin/vehicles/create";
         }
     }
 
-    // Form sửa xe
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable Long id, Model model) {
         model.addAttribute("vehicle", vehicleService.getVehicleDetail(id));
-        return "admin/vehicles/form"; // SỬA
+        return "admin/vehicles/edit";
     }
 
-    // Xử lý cập nhật
     @PostMapping("/edit/{id}")
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute("vehicle") VehicleDto dto,
+                         BindingResult result,
                          @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
-                         RedirectAttributes redirectAttributes) {
+                         RedirectAttributes redirectAttributes,
+                         Model model) {
+        if (result.hasErrors()) {
+            return "admin/vehicles/edit";
+        }
+
         try {
             vehicleService.updateVehicle(id, dto, imageFiles);
             redirectAttributes.addFlashAttribute("success", "Cập nhật thành công");
+            return "redirect:/admin/vehicles";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            model.addAttribute("error", e.getMessage());
+            return "admin/vehicles/edit";
         }
-        return "redirect:/admin/vehicles";
     }
 
-    // Xóa xe
     @PostMapping("/delete/{id}")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
