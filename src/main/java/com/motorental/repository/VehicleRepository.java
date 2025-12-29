@@ -30,4 +30,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     // STT 13: Vehicle Management - Kiểm tra trùng biển số khi thêm mới
     boolean existsByLicensePlate(String licensePlate);
+    boolean existsByLicensePlateAndIdNot(String licensePlate, Long id);
+
 }

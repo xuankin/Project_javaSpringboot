@@ -40,7 +40,8 @@
                     </td>
                     <td>
                         <strong th:text="${vehicle.name}">Honda Vision</strong><br>
-                        <small class="text-muted" th:text="${vehicle.brand} + ' - ' + ${vehicle.year}"></small>
+                        <small class="text-muted"
+                               th:text="${vehicle.brand + ' - ' + (vehicle.model != null ? vehicle.model : 'N/A') + (vehicle.year != null ? ' (' + vehicle.year + ')' : '')}"></small>
                     </td>
                     <td th:text="${vehicle.licensePlate}">29A1-12345</td>
                     <td th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'COMMA', 0, 'POINT')}">150,000</td>

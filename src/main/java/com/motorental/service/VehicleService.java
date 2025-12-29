@@ -16,40 +16,36 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.UUID;
+import java.nio.file.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class VehicleService {
 
+    private static final String UPLOAD_DIR = "uploads";
+    private static final String URL_PREFIX = "/uploads/";
+
     private final VehicleRepository vehicleRepository;
     private final VehicleImageRepository vehicleImageRepository;
     private final FeedbackRepository feedbackRepository;
     private final ModelMapper modelMapper;
 
-    // --- Public Methods ---
-
+    // =========================
+    // PUBLIC
+    // =========================
     public Page<VehicleDto> searchVehicles(String keyword, String statusStr, Pageable pageable) {
         Vehicle.VehicleStatus status = null;
         if (statusStr != null && !statusStr.isEmpty()) {
             try {
                 status = Vehicle.VehicleStatus.valueOf(statusStr);
-            } catch (IllegalArgumentException e) {
-                // Ignore invalid status
-            }
+            } catch (IllegalArgumentException ignored) {}
         }
-
-        return vehicleRepository.searchVehicles(keyword, status, pageable)
-                .map(this::mapToDto);
+        return vehicleRepository.searchVehicles(keyword, status, pageable).map(this::mapToDto);
     }
 
     public List<VehicleDto> getPopularVehicles() {
-        // Lấy top 6 xe phổ biến
         return vehicleRepository.findTopPopularVehicles(Pageable.ofSize(6)).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -61,22 +57,29 @@ public class VehicleService {
 
         VehicleDetailDto dto = modelMapper.map(vehicle, VehicleDetailDto.class);
 
-        // Map images
         List<String> images = vehicle.getImages().stream()
                 .map(VehicleImage::getImageUrl)
                 .collect(Collectors.toList());
         dto.setImageUrls(images);
-        if (!images.isEmpty()) dto.setPrimaryImageUrl(images.get(0));
 
-        // Map rating
+        // primary
+        String primary = vehicle.getImages().stream()
+                .filter(img -> Boolean.TRUE.equals(img.getIsPrimary()))
+                .map(VehicleImage::getImageUrl)
+                .findFirst()
+                .orElse(images.isEmpty() ? "/images/default.jpg" : images.get(0));
+
+        dto.setPrimaryImageUrl(primary);
+
         Double avgRating = feedbackRepository.getAverageRatingByVehicleId(id);
         dto.setAverageRating(avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0.0);
 
         return dto;
     }
 
-    // --- Admin Methods ---
-
+    // =========================
+    // ADMIN
+    // =========================
     @Transactional
     public void createVehicle(VehicleDto dto, List<MultipartFile> images) {
         if (vehicleRepository.existsByLicensePlate(dto.getLicensePlate())) {
@@ -87,14 +90,29 @@ public class VehicleService {
         vehicle.setStatus(Vehicle.VehicleStatus.AVAILABLE);
         vehicle.setRentalCount(0);
 
-        Vehicle savedVehicle = vehicleRepository.save(vehicle);
-        saveImages(savedVehicle, images);
+        Vehicle saved = vehicleRepository.save(vehicle);
+
+        // nếu có ảnh thì lưu, ảnh đầu tiên là primary
+        if (hasNewImages(images)) {
+            saveImages(saved, images, true);
+        }
     }
 
     @Transactional
     public void updateVehicle(Long id, VehicleDto dto, List<MultipartFile> images) {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Xe không tồn tại"));
+
+        // ✅ Check trùng biển số (trừ chính nó)
+        String newPlate = dto.getLicensePlate();
+        if (newPlate != null && !newPlate.isBlank()) {
+            // Nếu repo của bạn chưa có existsByLicensePlateAndIdNot thì xem mục (2) bên dưới
+            if (vehicleRepository.existsByLicensePlateAndIdNot(newPlate, id)) {
+                throw new RuntimeException("Biển số xe đã tồn tại!");
+            }
+            // ✅ FIX: cập nhật biển số
+            vehicle.setLicensePlate(newPlate);
+        }
 
         // Update basic info
         vehicle.setName(dto.getName());
@@ -105,65 +123,111 @@ public class VehicleService {
         vehicle.setYear(dto.getYear());
         vehicle.setColor(dto.getColor());
 
-        if (dto.getStatus() != null) {
+        if (dto.getStatus() != null && !dto.getStatus().isBlank()) {
             vehicle.setStatus(Vehicle.VehicleStatus.valueOf(dto.getStatus()));
         }
 
         vehicleRepository.save(vehicle);
 
-        // Nếu có upload ảnh mới thì xử lý (Logic tùy chọn: Xóa cũ thêm mới hoặc chỉ thêm mới)
-        if (images != null && !images.isEmpty() && !images.get(0).isEmpty()) {
-            // Ví dụ: Giữ ảnh cũ, thêm ảnh mới. Nếu muốn reset thì gọi vehicleImageRepository.deleteByVehicleId
-            saveImages(vehicle, images);
+        // ✅ Nếu upload ảnh mới -> thay ảnh (xóa cũ + set mới làm primary)
+        if (hasNewImages(images)) {
+            replaceImages(vehicle, images);
         }
     }
 
     @Transactional
     public void deleteVehicle(Long id) {
-        // Chỉ nên soft delete hoặc kiểm tra ràng buộc khóa ngoại
-        // Ở đây demo xóa cứng:
         vehicleRepository.deleteById(id);
     }
 
-    // --- Helpers ---
-
+    // =========================
+    // HELPERS
+    // =========================
     private VehicleDto mapToDto(Vehicle vehicle) {
         VehicleDto dto = modelMapper.map(vehicle, VehicleDto.class);
 
-        // Set ảnh đại diện
         String primaryImage = vehicle.getImages().stream()
-                .filter(VehicleImage::getIsPrimary)
+                .filter(img -> Boolean.TRUE.equals(img.getIsPrimary()))
                 .map(VehicleImage::getImageUrl)
                 .findFirst()
-                .orElse(vehicle.getImages().isEmpty() ? "/images/default.jpg" : vehicle.getImages().iterator().next().getImageUrl());
-        dto.setPrimaryImageUrl(primaryImage);
+                .orElse(vehicle.getImages().isEmpty()
+                        ? "/images/default.jpg"
+                        : vehicle.getImages().iterator().next().getImageUrl());
 
+        dto.setPrimaryImageUrl(primaryImage);
         return dto;
     }
 
-    private void saveImages(Vehicle vehicle, List<MultipartFile> files) {
+    private boolean hasNewImages(List<MultipartFile> files) {
+        return files != null && !files.isEmpty() && files.stream().anyMatch(f -> f != null && !f.isEmpty());
+    }
+
+    /**
+     * Xóa ảnh cũ (DB + file) rồi lưu ảnh mới, ảnh đầu tiên là primary.
+     */
+    private void replaceImages(Vehicle vehicle, List<MultipartFile> newFiles) {
+        // copy để tránh ConcurrentModification
+        List<VehicleImage> oldImages = new ArrayList<>(vehicle.getImages());
+
+        for (VehicleImage img : oldImages) {
+            deleteFileByUrl(img.getImageUrl());
+            vehicleImageRepository.delete(img);
+        }
+        vehicle.getImages().clear();
+
+        saveImages(vehicle, newFiles, true);
+    }
+
+    /**
+     * Lưu ảnh lên thư mục uploads và tạo VehicleImage.
+     * @param firstPrimary nếu true: file đầu tiên sẽ là primary
+     */
+    private void saveImages(Vehicle vehicle, List<MultipartFile> files, boolean firstPrimary) {
         if (files == null) return;
 
-        // Đảm bảo thư mục tồn tại
-        Path uploadPath = Paths.get("uploads/");
+        Path uploadPath = Paths.get(UPLOAD_DIR);
         try {
             if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
 
+            boolean primaryAssigned = false;
+
             for (MultipartFile file : files) {
-                if (file.isEmpty()) continue;
-                String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                Files.copy(file.getInputStream(), uploadPath.resolve(fileName));
+                if (file == null || file.isEmpty()) continue;
+
+                String original = file.getOriginalFilename();
+                String safeName = (original == null) ? "image" : original.replaceAll("\\s+", "_");
+                String fileName = UUID.randomUUID() + "_" + safeName;
+
+                Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
 
                 VehicleImage image = new VehicleImage();
                 image.setVehicle(vehicle);
-                image.setImageUrl("/uploads/" + fileName);
-                image.setIsPrimary(vehicle.getImages().isEmpty()); // Ảnh đầu tiên là ảnh chính
+                image.setImageUrl(URL_PREFIX + fileName);
+
+                boolean isPrimary = false;
+                if (firstPrimary && !primaryAssigned) {
+                    isPrimary = true;
+                    primaryAssigned = true;
+                }
+                image.setIsPrimary(isPrimary);
 
                 vehicleImageRepository.save(image);
-                vehicle.getImages().add(image); // Sync entity
+                vehicle.getImages().add(image);
             }
         } catch (IOException e) {
             throw new RuntimeException("Lỗi lưu file: " + e.getMessage());
         }
+    }
+
+    private void deleteFileByUrl(String imageUrl) {
+        if (imageUrl == null) return;
+        if (!imageUrl.startsWith(URL_PREFIX)) return;
+
+        String fileName = imageUrl.substring(URL_PREFIX.length());
+        Path filePath = Paths.get(UPLOAD_DIR).resolve(fileName);
+
+        try {
+            Files.deleteIfExists(filePath);
+        } catch (IOException ignored) {}
     }
 }
