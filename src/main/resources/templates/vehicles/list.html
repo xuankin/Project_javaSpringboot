@@ -27,7 +27,7 @@
                     <h5 class="text-danger fw-bold" th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'COMMA', 0, 'POINT')} + ' đ/ngày'"></h5>
 
                     <div class="d-grid gap-2 mt-3">
-                        <a th:href="@{/vehicles/{id}(id=${vehicle.id})}" class="btn btn-outline-dark">Xem chi tiết</a>
+                        <a th:href="@{/vehicles/detail/{id}(id=${vehicle.id})}" class="btn btn-outline-dark">Xem chi tiết</a>
                     </div>
                 </div>
                 <div class="card-footer bg-white border-top-0 d-flex justify-content-between">

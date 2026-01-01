@@ -9,19 +9,28 @@
                 <div class="card-header bg-warning text-dark">
                     <h4 class="mb-0">Cập nhật thông tin xe</h4>
                 </div>
+
                 <div class="card-body">
-                    <form th:action="@{/admin/vehicles/edit/{id}(id=${vehicle.id})}" method="post" enctype="multipart/form-data" th:object="${vehicle}">
+                    <form th:action="@{/admin/vehicles/edit/{id}(id=${vehicle.id != null ? vehicle.id : vehicleId})}"
+                          method="post"
+                          enctype="multipart/form-data"
+                          th:object="${vehicle}">
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label">Tên xe</label>
                                 <input type="text" th:field="*{name}" class="form-control" required>
-                                <div class="text-danger small" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                                <div class="text-danger small"
+                                     th:if="${#fields.hasErrors('name')}"
+                                     th:errors="*{name}"></div>
                             </div>
+
                             <div class="col-md-6">
                                 <label class="form-label">Biển số</label>
                                 <input type="text" th:field="*{licensePlate}" class="form-control" required>
-                                <div class="text-danger small" th:if="${#fields.hasErrors('licensePlate')}" th:errors="*{licensePlate}"></div>
+                                <div class="text-danger small"
+                                     th:if="${#fields.hasErrors('licensePlate')}"
+                                     th:errors="*{licensePlate}"></div>
                             </div>
                         </div>
 
@@ -30,10 +39,12 @@
                                 <label class="form-label">Hãng</label>
                                 <input type="text" th:field="*{brand}" class="form-control">
                             </div>
+
                             <div class="col-md-4">
                                 <label class="form-label">Model</label>
                                 <input type="text" th:field="*{model}" class="form-control">
                             </div>
+
                             <div class="col-md-4">
                                 <label class="form-label">Trạng thái</label>
                                 <select th:field="*{status}" class="form-select">
@@ -55,16 +66,21 @@
                             <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
                         </div>
 
-                        <div class="mb-3" th:if="${not #lists.isEmpty(vehicle.imageUrls)}">
+                        <!-- Ảnh hiện tại: dùng currentImageUrls + cache-busting -->
+                        <div class="mb-3" th:if="${not #lists.isEmpty(currentImageUrls)}">
                             <label class="form-label">Ảnh hiện tại:</label>
-                            <div class="d-flex gap-2">
-                                <img th:each="img : ${vehicle.imageUrls}" th:src="${img}" width="100" class="img-thumbnail">
+                            <div class="d-flex flex-wrap gap-2" id="currentImages">
+                                <img th:each="img : ${currentImageUrls}"
+                                     th:src="@{${img}(v=${#dates.createNow().time})}"
+                                     width="110" class="img-thumbnail"/>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Tải lên ảnh mới (Sẽ thêm vào danh sách ảnh)</label>
-                            <input type="file" name="imageFiles" class="form-control" multiple accept="image/*">
+                            <label class="form-label">Tải lên ảnh mới</label>
+                            <input type="file" id="imageFiles" name="imageFiles"
+                                   class="form-control" multiple accept="image/*">
+                            <div id="previewImages" class="d-flex flex-wrap gap-2 mt-2"></div>
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">
@@ -76,6 +92,25 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const input = document.getElementById('imageFiles');
+        const preview = document.getElementById('previewImages');
+
+        input?.addEventListener('change', () => {
+            preview.innerHTML = '';
+            [...input.files].forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                const img = document.createElement('img');
+                img.width = 110;
+                img.className = 'img-thumbnail';
+                const url = URL.createObjectURL(file);
+                img.src = url;
+                img.onload = () => URL.revokeObjectURL(url);
+                preview.appendChild(img);
+            });
+        });
+    </script>
 </section>
 </body>
 </html>

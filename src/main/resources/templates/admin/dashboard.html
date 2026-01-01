@@ -76,29 +76,31 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                     <tr>
-                        <th>ID</th>
-                        <th>Khách hàng</th>
-                        <th>Ngày thuê</th>
-                        <th>Tổng tiền</th>
+                        <th>Mã đơn</th> <th>Khách hàng</th>
+                        <th>Ngày đặt</th> <th>Tổng tiền</th>
                         <th>Trạng thái</th>
                         <th>Hành động</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="order : ${stats.recentOrders}">
-                        <td th:text="${'#' + order.id}"></td>
+                        <td class="fw-bold" th:text="${order.orderCode}"></td>
+
                         <td th:text="${order.user.fullName}"></td>
-                        <td th:text="${order.startDate}"></td>
-                        <td th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
+
+                        <td th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
+
+                        <td class="text-danger fw-bold" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
+
                         <td>
-                                    <span class="badge"
-                                          th:classappend="${
-                                            order.status.name() == 'PENDING' ? 'bg-warning text-dark' :
-                                            (order.status.name() == 'CONFIRMED' ? 'bg-primary' :
-                                            (order.status.name() == 'COMPLETED' ? 'bg-success' : 'bg-danger'))
-                                          }"
-                                          th:text="${order.status}">
-                                    </span>
+                            <span class="badge"
+                                  th:classappend="${
+                                    order.status.name() == 'PENDING' ? 'bg-warning text-dark' :
+                                    (order.status.name() == 'CONFIRMED' ? 'bg-primary' :
+                                    (order.status.name() == 'COMPLETED' ? 'bg-success' : 'bg-secondary'))
+                                  }"
+                                  th:text="${order.status}">
+                            </span>
                         </td>
                         <td>
                             <a th:href="@{/admin/orders/detail/{id}(id=${order.id})}" class="btn btn-sm btn-outline-primary">

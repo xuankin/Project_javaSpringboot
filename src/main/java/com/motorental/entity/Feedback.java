@@ -23,16 +23,16 @@ public class Feedback extends BaseEntity {
     @Column(nullable = false)
     private Integer rating;
 
-    @Column(columnDefinition = "TEXT") // Sửa thành TEXT
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @ToString.Exclude // Ngắt vòng lặp
+    @ToString.Exclude
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id", nullable = false)
-    @ToString.Exclude // Ngắt vòng lặp
+    @ToString.Exclude
     private Vehicle vehicle;
 }

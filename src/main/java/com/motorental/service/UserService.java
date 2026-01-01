@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.stream.Collectors; // Cần thêm cái này để map Role
 
 @Service
 @RequiredArgsConstructor
@@ -49,10 +50,23 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // SỬA: Map thủ công để lấy được danh sách tên Role chính xác
     public UserDto getUserProfile(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
-        return modelMapper.map(user, UserDto.class);
+
+        return UserDto.builder()
+                .id(user.getId() != null ? user.getId().toString() : null)
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
+                .isActive(user.getIsActive())
+                // Chuyển đổi Set<Role> thành Set<String> (tên role)
+                .roles(user.getRoles().stream()
+                        .map(Role::getName)
+                        .collect(Collectors.toSet()))
+                .build();
     }
 
     @Transactional
@@ -60,9 +74,11 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
+        // Chỉ cập nhật các trường cho phép
         user.setFullName(userDto.getFullName());
         user.setPhoneNumber(userDto.getPhoneNumber());
-        // Không cho phép đổi username/email ở đây để đảm bảo an toàn
+
+        // Không cập nhật username, email, password ở đây
 
         userRepository.save(user);
     }

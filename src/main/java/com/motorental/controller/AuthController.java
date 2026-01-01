@@ -39,7 +39,7 @@ public class AuthController {
             return "auth/register";
         }
 
-        // 2. Kiểm tra xác nhận mật khẩu (QUAN TRỌNG)
+        // 2. Kiểm tra xác nhận mật khẩu
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
             model.addAttribute("error", "Mật khẩu xác nhận không khớp!");
             return "auth/register";
@@ -50,7 +50,6 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("success", "Đăng ký thành công! Vui lòng đăng nhập.");
             return "redirect:/login";
         } catch (Exception e) {
-            // Bắt lỗi từ Service (User đã tồn tại, Email đã tồn tại...)
             model.addAttribute("error", e.getMessage());
             return "auth/register";
         }
@@ -60,4 +59,6 @@ public class AuthController {
     public String accessDenied() {
         return "error/403";
     }
+
+
 }

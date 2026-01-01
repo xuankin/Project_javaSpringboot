@@ -5,7 +5,6 @@ import com.motorental.entity.Feedback;
 import com.motorental.entity.User;
 import com.motorental.entity.Vehicle;
 import com.motorental.repository.FeedbackRepository;
-import com.motorental.repository.OrderDetailRepository;
 import com.motorental.repository.UserRepository;
 import com.motorental.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,7 @@ import java.util.stream.Collectors;
 public class FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
-    private final OrderDetailRepository orderDetailRepository;
+    // Đã xóa RentalOrderRepository vì không cần check đơn hàng nữa
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
 
@@ -40,21 +39,22 @@ public class FeedbackService {
 
     @Transactional
     public void createFeedback(String userId, FeedbackDto dto) {
-        // Check điều kiện: Phải thuê xe đó và đơn hàng đã hoàn thành (COMPLETED)
-        boolean canRate = orderDetailRepository.hasUserRentedVehicle(userId, dto.getVehicleId());
+        // 1. Lấy thông tin User và Vehicle
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        if (!canRate) {
-            throw new RuntimeException("Bạn phải hoàn thành chuyến đi với xe này mới được đánh giá.");
-        }
+        Vehicle vehicle = vehicleRepository.findById(dto.getVehicleId())
+                .orElseThrow(() -> new RuntimeException("Xe không tồn tại"));
 
-        User user = userRepository.findById(userId).orElseThrow();
-        Vehicle vehicle = vehicleRepository.findById(dto.getVehicleId()).orElseThrow();
+        // 2. (Tùy chọn) Check xem User này đã đánh giá xe này chưa nếu muốn chặn spam
+        // if (feedbackRepository.existsByUserAndVehicle(user, vehicle)) { ... }
 
+        // 3. Tạo Feedback mới mà KHÔNG cần check Order
         Feedback feedback = new Feedback();
         feedback.setUser(user);
         feedback.setVehicle(vehicle);
         feedback.setRating(dto.getRating());
-        feedback.setContent(dto.getContent());
+        feedback.setContent(dto.getComment());
 
         feedbackRepository.save(feedback);
     }
@@ -62,11 +62,10 @@ public class FeedbackService {
     @Transactional
     public void deleteFeedback(Long id, String userId) {
         Feedback fb = feedbackRepository.findById(id).orElseThrow();
-        // Nếu có userId (user thường) -> Check quyền chính chủ
+        // Chỉ cho phép xóa nếu là chủ sở hữu comment (hoặc admin xử lý riêng)
         if (userId != null && !fb.getUser().getId().equals(userId)) {
             throw new RuntimeException("Không có quyền xóa đánh giá này");
         }
-        // Nếu userId null -> Admin -> Cho phép xóa
         feedbackRepository.delete(fb);
     }
 
@@ -75,9 +74,9 @@ public class FeedbackService {
                 .id(fb.getId())
                 .vehicleId(fb.getVehicle().getId())
                 .vehicleName(fb.getVehicle().getName())
-                .userName(fb.getUser().getUsername()) // hoặc fullName
+                .userName(fb.getUser().getUsername())
                 .rating(fb.getRating())
-                .content(fb.getContent())
+                .comment(fb.getContent())
                 .createdAt(fb.getCreatedAt())
                 .build();
     }

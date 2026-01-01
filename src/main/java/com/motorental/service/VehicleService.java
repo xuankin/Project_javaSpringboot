@@ -3,22 +3,27 @@ package com.motorental.service;
 import com.motorental.dto.vehicle.VehicleDetailDto;
 import com.motorental.dto.vehicle.VehicleDto;
 import com.motorental.entity.Vehicle;
+import com.motorental.entity.VehicleAvailability;
 import com.motorental.entity.VehicleImage;
 import com.motorental.repository.FeedbackRepository;
+import com.motorental.repository.VehicleAvailabilityRepository;
 import com.motorental.repository.VehicleImageRepository;
 import com.motorental.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -28,142 +33,157 @@ import java.util.stream.Collectors;
 public class VehicleService {
 
     private final VehicleRepository vehicleRepository;
-    private final VehicleImageRepository vehicleImageRepository;
+    private final VehicleAvailabilityRepository availabilityRepository;
     private final FeedbackRepository feedbackRepository;
     private final ModelMapper modelMapper;
 
-    // --- Public Methods ---
+    // Thư mục lưu ảnh upload (tương ứng với cấu hình ResourceHandler nếu có)
+    private static final String UPLOAD_DIR = "uploads/";
 
-    public Page<VehicleDto> searchVehicles(String keyword, String statusStr, Pageable pageable) {
-        Vehicle.VehicleStatus status = null;
-        if (statusStr != null && !statusStr.isEmpty()) {
-            try {
-                status = Vehicle.VehicleStatus.valueOf(statusStr);
-            } catch (IllegalArgumentException e) {
-                // Ignore invalid status
-            }
-        }
-
-        return vehicleRepository.searchVehicles(keyword, status, pageable)
-                .map(this::mapToDto);
+    public Page<VehicleDetailDto> searchVehicles(String keyword, Double maxPrice, Pageable pageable) {
+        return vehicleRepository.searchVehiclesDetail(keyword, maxPrice, pageable)
+                .map(this::mapToDetailDto);
     }
 
+    // --- Phương thức mới: Lấy danh sách xe phổ biến (gọi từ HomeController) ---
     public List<VehicleDto> getPopularVehicles() {
-        // Lấy top 6 xe phổ biến
-        return vehicleRepository.findTopPopularVehicles(Pageable.ofSize(6)).stream()
-                .map(this::mapToDto)
+        // Lấy top 6 xe phổ biến nhất
+        Pageable pageable = PageRequest.of(0, 6);
+        return vehicleRepository.findTopPopularVehicles(pageable).stream()
+                .map(vehicle -> {
+                    VehicleDto dto = modelMapper.map(vehicle, VehicleDto.class);
+                    // Set ảnh đại diện nếu có
+                    if (!vehicle.getImages().isEmpty()) {
+                        dto.setPrimaryImageUrl(vehicle.getImages().iterator().next().getImageUrl());
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
+    }
+
+    public List<VehicleAvailability> getFutureBookings(Long vehicleId) {
+        return availabilityRepository.findFutureBookings(
+                vehicleId,
+                List.of(VehicleAvailability.AvailabilityStatus.BOOKED,
+                        VehicleAvailability.AvailabilityStatus.COMPLETED)
+        );
     }
 
     public VehicleDetailDto getVehicleDetail(Long id) {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Xe không tồn tại"));
-
-        VehicleDetailDto dto = modelMapper.map(vehicle, VehicleDetailDto.class);
-
-        // Map images
-        List<String> images = vehicle.getImages().stream()
-                .map(VehicleImage::getImageUrl)
-                .collect(Collectors.toList());
-        dto.setImageUrls(images);
-        if (!images.isEmpty()) dto.setPrimaryImageUrl(images.get(0));
-
-        // Map rating
-        Double avgRating = feedbackRepository.getAverageRatingByVehicleId(id);
-        dto.setAverageRating(avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0.0);
-
-        return dto;
+        return mapToDetailDto(vehicle);
     }
 
-    // --- Admin Methods ---
-
+    // --- Phương thức mới: Tạo xe mới (gọi từ AdminVehicleController) ---
     @Transactional
-    public void createVehicle(VehicleDto dto, List<MultipartFile> images) {
-        if (vehicleRepository.existsByLicensePlate(dto.getLicensePlate())) {
-            throw new RuntimeException("Biển số xe đã tồn tại!");
+    public void createVehicle(VehicleDto dto, List<MultipartFile> imageFiles) throws IOException {
+        Vehicle vehicle = modelMapper.map(dto, Vehicle.class);
+
+        // Mặc định trạng thái là AVAILABLE nếu chưa set
+        if (vehicle.getStatus() == null) {
+            vehicle.setStatus(Vehicle.VehicleStatus.AVAILABLE);
         }
 
-        Vehicle vehicle = modelMapper.map(dto, Vehicle.class);
-        vehicle.setStatus(Vehicle.VehicleStatus.AVAILABLE);
-        vehicle.setRentalCount(0);
+        // Lưu xe trước để có ID (nếu cần dùng cho logic khác, dù cascade persist sẽ lo việc lưu image)
+        vehicle = vehicleRepository.save(vehicle);
 
-        Vehicle savedVehicle = vehicleRepository.save(vehicle);
-        saveImages(savedVehicle, images);
+        // Xử lý upload ảnh
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            for (MultipartFile file : imageFiles) {
+                if (!file.isEmpty()) {
+                    String imageUrl = saveFile(file);
+                    VehicleImage image = new VehicleImage();
+                    image.setImageUrl(imageUrl);
+                    image.setVehicle(vehicle);
+                    // Ảnh đầu tiên set làm ảnh chính
+                    if (vehicle.getImages().isEmpty()) {
+                        image.setIsPrimary(true);
+                    }
+                    vehicle.addImage(image);
+                }
+            }
+            // Lưu lại xe với danh sách ảnh đã thêm
+            vehicleRepository.save(vehicle);
+        }
     }
 
+    // --- Phương thức mới: Cập nhật xe (gọi từ AdminVehicleController) ---
     @Transactional
-    public void updateVehicle(Long id, VehicleDto dto, List<MultipartFile> images) {
+    public void updateVehicle(Long id, VehicleDto dto, List<MultipartFile> imageFiles) throws IOException {
         Vehicle vehicle = vehicleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Xe không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
 
-        // Update basic info
+        // Cập nhật thông tin cơ bản
         vehicle.setName(dto.getName());
+        vehicle.setLicensePlate(dto.getLicensePlate());
+        vehicle.setDescription(dto.getDescription());
+        vehicle.setPricePerDay(dto.getPricePerDay());
         vehicle.setBrand(dto.getBrand());
         vehicle.setModel(dto.getModel());
-        vehicle.setPricePerDay(dto.getPricePerDay());
-        vehicle.setDescription(dto.getDescription());
         vehicle.setYear(dto.getYear());
         vehicle.setColor(dto.getColor());
 
+        // Cập nhật trạng thái nếu có thay đổi
         if (dto.getStatus() != null) {
-            vehicle.setStatus(Vehicle.VehicleStatus.valueOf(dto.getStatus()));
+            try {
+                vehicle.setStatus(Vehicle.VehicleStatus.valueOf(dto.getStatus()));
+            } catch (IllegalArgumentException e) {
+                // Giữ nguyên status cũ hoặc log lỗi
+            }
+        }
+
+        // Xử lý ảnh mới thêm vào
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            for (MultipartFile file : imageFiles) {
+                if (!file.isEmpty()) {
+                    String imageUrl = saveFile(file);
+                    VehicleImage image = new VehicleImage();
+                    image.setImageUrl(imageUrl);
+                    image.setVehicle(vehicle);
+                    vehicle.addImage(image);
+                }
+            }
         }
 
         vehicleRepository.save(vehicle);
-
-        // Nếu có upload ảnh mới thì xử lý (Logic tùy chọn: Xóa cũ thêm mới hoặc chỉ thêm mới)
-        if (images != null && !images.isEmpty() && !images.get(0).isEmpty()) {
-            // Ví dụ: Giữ ảnh cũ, thêm ảnh mới. Nếu muốn reset thì gọi vehicleImageRepository.deleteByVehicleId
-            saveImages(vehicle, images);
-        }
     }
 
+    // --- Phương thức mới: Xóa xe (gọi từ AdminVehicleController) ---
     @Transactional
     public void deleteVehicle(Long id) {
-        // Chỉ nên soft delete hoặc kiểm tra ràng buộc khóa ngoại
-        // Ở đây demo xóa cứng:
+        if (!vehicleRepository.existsById(id)) {
+            throw new RuntimeException("Xe không tồn tại");
+        }
         vehicleRepository.deleteById(id);
     }
 
-    // --- Helpers ---
+    // --- Helper: Map Entity sang Detail DTO ---
+    private VehicleDetailDto mapToDetailDto(Vehicle vehicle) {
+        VehicleDetailDto dto = modelMapper.map(vehicle, VehicleDetailDto.class);
+        dto.setImageUrls(vehicle.getImages().stream()
+                .map(VehicleImage::getImageUrl).collect(Collectors.toList()));
 
-    private VehicleDto mapToDto(Vehicle vehicle) {
-        VehicleDto dto = modelMapper.map(vehicle, VehicleDto.class);
-
-        // Set ảnh đại diện
-        String primaryImage = vehicle.getImages().stream()
-                .filter(VehicleImage::getIsPrimary)
-                .map(VehicleImage::getImageUrl)
-                .findFirst()
-                .orElse(vehicle.getImages().isEmpty() ? "/images/default.jpg" : vehicle.getImages().iterator().next().getImageUrl());
-        dto.setPrimaryImageUrl(primaryImage);
-
+        Double avgRating = feedbackRepository.getAverageRatingByVehicleId(vehicle.getId());
+        dto.setAverageRating(avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0.0);
         return dto;
     }
 
-    private void saveImages(Vehicle vehicle, List<MultipartFile> files) {
-        if (files == null) return;
-
-        // Đảm bảo thư mục tồn tại
-        Path uploadPath = Paths.get("uploads/");
-        try {
-            if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
-
-            for (MultipartFile file : files) {
-                if (file.isEmpty()) continue;
-                String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                Files.copy(file.getInputStream(), uploadPath.resolve(fileName));
-
-                VehicleImage image = new VehicleImage();
-                image.setVehicle(vehicle);
-                image.setImageUrl("/uploads/" + fileName);
-                image.setIsPrimary(vehicle.getImages().isEmpty()); // Ảnh đầu tiên là ảnh chính
-
-                vehicleImageRepository.save(image);
-                vehicle.getImages().add(image); // Sync entity
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Lỗi lưu file: " + e.getMessage());
+    // --- Helper: Lưu file ---
+    private String saveFile(MultipartFile file) throws IOException {
+        Path uploadPath = Paths.get(UPLOAD_DIR);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
         }
+
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        Path filePath = uploadPath.resolve(fileName);
+
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        // Trả về đường dẫn tương đối để lưu vào DB (ví dụ: /uploads/abc.jpg)
+        return "/" + UPLOAD_DIR + fileName;
     }
 }

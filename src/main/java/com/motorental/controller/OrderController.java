@@ -25,7 +25,6 @@ public class OrderController {
     private final CartService cartService;
     private final UserRepository userRepository;
 
-    // Trang thanh toán (Checkout)
     @GetMapping("/checkout")
     public String checkoutPage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String userId = getUserId(userDetails);
@@ -36,27 +35,39 @@ public class OrderController {
         }
 
         model.addAttribute("cart", cart);
-        model.addAttribute("orderRequest", new CreateOrderDto());
+        model.addAttribute("order", new CreateOrderDto());
         return "orders/checkout";
     }
 
-    // Tạo đơn hàng
     @PostMapping("/orders/create")
     public String createOrder(@AuthenticationPrincipal UserDetails userDetails,
-                              @Valid @ModelAttribute("orderRequest") CreateOrderDto dto,
+                              @Valid @ModelAttribute("order") CreateOrderDto dto,
                               RedirectAttributes redirectAttributes) {
         try {
             String userId = getUserId(userDetails);
             OrderDto order = orderService.createOrderFromCart(userId, dto);
-            // Redirect sang trang thanh toán của đơn hàng vừa tạo
+
+            // --- ĐOẠN ĐÃ SỬA: Phân luồng thanh toán ---
+
+            // 1. Nếu là Tiền mặt (CASH) -> Xong luôn, về trang chi tiết
+            if ("CASH".equals(dto.getPaymentMethod())) {
+                redirectAttributes.addFlashAttribute("success", "Đặt xe thành công! Vui lòng thanh toán khi nhận xe.");
+                return "redirect:/orders/" + order.getId();
+            }
+
+            // 2. Nếu là VNPay (hoặc Online khác) -> Chuyển sang trang thanh toán
             return "redirect:/payments/create/" + order.getId();
+
+            // ------------------------------------------
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            // In lỗi ra log để debug (tùy chọn)
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Lỗi tạo đơn hàng: " + e.getMessage());
             return "redirect:/checkout";
         }
     }
 
-    // Danh sách đơn hàng của tôi
     @GetMapping("/my-orders")
     public String myOrders(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String userId = getUserId(userDetails);
@@ -65,17 +76,16 @@ public class OrderController {
         return "orders/my-orders";
     }
 
-    // Chi tiết đơn hàng
     @GetMapping("/orders/{id}")
     public String orderDetail(@AuthenticationPrincipal UserDetails userDetails,
                               @PathVariable Long id,
                               Model model) {
+        // Có thể thêm check quyền sở hữu đơn hàng ở đây nếu cần bảo mật kỹ hơn
         OrderDto order = orderService.getOrderById(id);
         model.addAttribute("order", order);
         return "orders/detail";
     }
 
-    // Hủy đơn hàng
     @PostMapping("/orders/{id}/cancel")
     public String cancelOrder(@AuthenticationPrincipal UserDetails userDetails,
                               @PathVariable Long id,
@@ -91,6 +101,8 @@ public class OrderController {
     }
 
     private String getUserId(UserDetails userDetails) {
-        return userRepository.findByUsername(userDetails.getUsername()).orElseThrow().getId();
+        return userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"))
+                .getId();
     }
 }

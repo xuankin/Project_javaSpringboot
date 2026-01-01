@@ -1,5 +1,6 @@
 package com.motorental.controller.admin;
 
+import com.motorental.dto.vehicle.VehicleDetailDto;
 import com.motorental.dto.vehicle.VehicleDto;
 import com.motorental.service.VehicleService;
 import jakarta.validation.Valid;
@@ -21,12 +22,19 @@ public class AdminVehicleController {
 
     private final VehicleService vehicleService;
 
+    // =========================
+    // LIST
+    // =========================
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("vehicles", vehicleService.searchVehicles("", null, Pageable.unpaged()).getContent());
+        model.addAttribute("vehicles",
+                vehicleService.searchVehicles("", null, Pageable.unpaged()).getContent());
         return "admin/vehicles/list";
     }
 
+    // =========================
+    // CREATE
+    // =========================
     @GetMapping("/create")
     public String createForm(Model model) {
         model.addAttribute("vehicle", new VehicleDto());
@@ -36,7 +44,7 @@ public class AdminVehicleController {
     @PostMapping("/create")
     public String save(@Valid @ModelAttribute("vehicle") VehicleDto dto,
                        BindingResult result,
-                       @RequestParam("imageFiles") List<MultipartFile> imageFiles,
+                       @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
                        RedirectAttributes redirectAttributes,
                        Model model) {
         if (result.hasErrors()) {
@@ -53,9 +61,22 @@ public class AdminVehicleController {
         }
     }
 
+    // =========================
+    // EDIT
+    // =========================
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable Long id, Model model) {
-        model.addAttribute("vehicle", vehicleService.getVehicleDetail(id));
+        VehicleDetailDto detail = vehicleService.getVehicleDetail(id);
+
+        // vehicle object dùng để bind form (detail có đủ info để fill form)
+        model.addAttribute("vehicle", detail);
+
+        // ảnh hiện tại (tách riêng để không cần imageUrls trong VehicleDto)
+        model.addAttribute("currentImageUrls", detail.getImageUrls());
+
+        // id cho form action
+        model.addAttribute("vehicleId", id);
+
         return "admin/vehicles/edit";
     }
 
@@ -66,6 +87,12 @@ public class AdminVehicleController {
                          @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
                          RedirectAttributes redirectAttributes,
                          Model model) {
+
+        // luôn nạp lại ảnh hiện tại để khi lỗi validate vẫn hiện ảnh
+        VehicleDetailDto current = vehicleService.getVehicleDetail(id);
+        model.addAttribute("currentImageUrls", current.getImageUrls());
+        model.addAttribute("vehicleId", id);
+
         if (result.hasErrors()) {
             return "admin/vehicles/edit";
         }
@@ -80,6 +107,9 @@ public class AdminVehicleController {
         }
     }
 
+    // =========================
+    // DELETE
+    // =========================
     @PostMapping("/delete/{id}")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
