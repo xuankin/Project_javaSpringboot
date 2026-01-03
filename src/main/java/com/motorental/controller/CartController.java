@@ -32,15 +32,31 @@ public class CartController {
     @PostMapping("/add")
     public String addToCart(@AuthenticationPrincipal UserDetails userDetails,
                             @Valid @ModelAttribute AddToCartDto dto,
+                            @RequestParam(value = "redirect", required = false) String redirect,
                             RedirectAttributes redirectAttributes) {
         try {
             String userId = getUserId(userDetails);
+
+            // 2. Thêm xe vào giỏ
             cartService.addToCart(userId, dto);
+
+            // 3. Nếu bấm "Thuê ngay" -> Sang trang Checkout
+            if ("checkout".equals(redirect)) {
+                return "redirect:/checkout";
+            }
+
+            // 4. Nếu bấm "Thêm vào giỏ" -> Quay lại trang chi tiết xe
             redirectAttributes.addFlashAttribute("success", "Đã thêm vào giỏ hàng!");
+
+            // [SỬA LỖI TẠI ĐÂY] Thêm "/detail" vào đường dẫn redirect
+            return "redirect:/vehicles/detail/" + dto.getVehicleId();
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+            // [SỬA LỖI TẠI ĐÂY] Cũng sửa đường dẫn khi có lỗi
+            return "redirect:/vehicles/detail/" + dto.getVehicleId();
         }
-        return "redirect:/vehicles/" + dto.getVehicleId();
     }
 
     @PostMapping("/remove/{itemId}")
@@ -48,7 +64,7 @@ public class CartController {
                              @PathVariable Long itemId,
                              RedirectAttributes redirectAttributes) {
         try {
-            String userId = getUserId(userDetails); // Lấy userId để check quyền nếu cần
+            String userId = getUserId(userDetails);
             cartService.removeFromCart(userId, itemId);
             redirectAttributes.addFlashAttribute("success", "Đã xóa xe khỏi giỏ.");
         } catch (Exception e) {
@@ -64,7 +80,6 @@ public class CartController {
         return "redirect:/cart";
     }
 
-    // Helper lấy ID từ UserDetails
     private String getUserId(UserDetails userDetails) {
         return userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found")).getId();

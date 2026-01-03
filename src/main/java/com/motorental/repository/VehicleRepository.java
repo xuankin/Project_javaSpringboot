@@ -21,6 +21,14 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
                                  @Param("status") Vehicle.VehicleStatus status,
                                  Pageable pageable);
 
+    // Phương thức mới để sửa lỗi: Tìm kiếm với giá max (được gọi từ VehicleService)
+    @Query("SELECT v FROM Vehicle v WHERE " +
+            "(:keyword IS NULL OR lower(v.name) LIKE lower(concat('%', :keyword, '%')) OR lower(v.brand) LIKE lower(concat('%', :keyword, '%'))) " +
+            "AND (:maxPrice IS NULL OR v.pricePerDay <= :maxPrice)")
+    Page<Vehicle> searchVehiclesDetail(@Param("keyword") String keyword,
+                                       @Param("maxPrice") Double maxPrice,
+                                       Pageable pageable);
+
     // STT 1: Best Seller - Lấy top xe có lượt thuê cao nhất
     @Query("SELECT v FROM Vehicle v ORDER BY v.rentalCount DESC")
     List<Vehicle> findTopPopularVehicles(Pageable pageable);

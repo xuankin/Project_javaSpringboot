@@ -8,7 +8,6 @@ import com.motorental.entity.*;
 import com.motorental.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,45 +21,53 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final RentalOrderRepository orderRepository;
-    private final OrderDetailRepository orderDetailRepository; //
-    private final VehicleAvailabilityRepository availabilityRepository; //
+    private final VehicleAvailabilityRepository availabilityRepository;
     private final CartService cartService;
-    private final UserRepository userRepository;
     private final EmailService emailService;
     private final ModelMapper modelMapper;
 
+    /**
+     * Tạo đơn hàng từ giỏ hàng và kiểm tra tính khả dụng của xe.
+     */
     @Transactional(rollbackFor = Exception.class)
     public OrderDto createOrderFromCart(String userId, CreateOrderDto createOrderDto) {
-        // 1. Lấy giỏ hàng
         RentalCart cart = cartService.getCartEntity(userId);
         if (cart.getItems().isEmpty()) {
             throw new RuntimeException("Giỏ hàng trống!");
         }
 
-        // 2. CHECK AVAILABILITY (Rất quan trọng)
-        // Duyệt từng xe trong giỏ để kiểm tra xem có ai đặt chưa
+        // Xác định danh sách trạng thái được coi là xe bận (đã đặt hoặc hoàn thành)
+        List<VehicleAvailability.AvailabilityStatus> busyStatuses = List.of(
+                VehicleAvailability.AvailabilityStatus.BOOKED,
+                VehicleAvailability.AvailabilityStatus.COMPLETED
+        );
+
+        // 1. Kiểm tra tính khả dụng: Chặn nếu có xung đột với lịch đã đặt hoặc đã hoàn thành
         for (RentalCartItem item : cart.getItems()) {
             List<VehicleAvailability> conflicts = availabilityRepository.findConflictingAvailabilities(
                     item.getVehicle().getId(),
                     item.getStartDate(),
-                    item.getEndDate()
+                    item.getEndDate(),
+                    busyStatuses // Sử dụng danh sách status để kiểm tra xung đột
             );
+
             if (!conflicts.isEmpty()) {
                 throw new RuntimeException("Xe '" + item.getVehicle().getName() +
-                        "' đã bị người khác đặt trong khoảng thời gian này. Vui lòng chọn xe khác.");
+                        "' đã bị người khác đặt hoặc đang trong thời gian thuê.");
             }
         }
 
-        // 3. Tạo Order
+        // 2. Tạo đối tượng đơn hàng mới
         RentalOrder order = new RentalOrder();
         order.setUser(cart.getUser());
         order.setNotes(createOrderDto.getNotes());
         order.setStatus(RentalOrder.OrderStatus.PENDING);
 
-        // 4. Chuyển Cart Items -> Order Details & Tạo Lịch Booked
         BigDecimal totalPrice = BigDecimal.ZERO;
 
+        // 3. Xử lý từng mục trong giỏ hàng
         for (RentalCartItem item : cart.getItems()) {
+            // Lưu chi tiết đơn hàng
             OrderDetail detail = new OrderDetail();
             detail.setRentalOrder(order);
             detail.setVehicle(item.getVehicle());
@@ -70,10 +77,10 @@ public class OrderService {
             detail.setRentalDays(item.getRentalDays());
             detail.setTotalPrice(item.getTotalPrice());
 
-            order.addOrderDetail(detail); // Helper method trong Entity
+            order.addOrderDetail(detail);
             totalPrice = totalPrice.add(item.getTotalPrice());
 
-            // Tạo bản ghi Availability để khóa lịch
+            // Tạo bản ghi lịch bận cho xe (Status: BOOKED)
             VehicleAvailability availability = new VehicleAvailability();
             availability.setVehicle(item.getVehicle());
             availability.setOrder(order);
@@ -81,22 +88,17 @@ public class OrderService {
             availability.setEndDate(item.getEndDate());
             availability.setStatus(VehicleAvailability.AvailabilityStatus.BOOKED);
 
-            // Lưu vào list của Order để Cascade lưu luôn
             order.getAvailabilities().add(availability);
-
-            // Tăng lượt thuê của xe
             item.getVehicle().incrementRentalCount();
         }
 
         order.setTotalPrice(totalPrice);
-
-        // 5. Lưu Order (Cascade sẽ lưu OrderDetail và VehicleAvailability)
         RentalOrder savedOrder = orderRepository.save(order);
 
-        // 6. Xóa giỏ hàng
+        // 4. Xóa giỏ hàng sau khi đặt thành công
         cartService.clearCart(userId);
 
-        // 7. Gửi email xác nhận (Async)
+        // 5. Gửi email xác nhận đơn hàng
         try {
             emailService.sendOrderConfirmationEmail(cart.getUser().getEmail(), savedOrder);
         } catch (Exception e) {
@@ -118,20 +120,20 @@ public class OrderService {
         return mapToDto(order);
     }
 
-    // --- Admin Methods ---
-
     public List<OrderDto> getAllOrders() {
         return orderRepository.findAllByOrderByCreatedAtDesc(Pageable.unpaged()).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Hủy đơn hàng và giải phóng lịch bận của xe.
+     */
     @Transactional
     public void cancelOrder(Long orderId, String userId) {
         RentalOrder order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
 
-        // Nếu là user thường hủy, check quyền sở hữu
         if (userId != null && !order.getUser().getId().equals(userId)) {
             throw new RuntimeException("Bạn không có quyền hủy đơn này");
         }
@@ -144,36 +146,34 @@ public class OrderService {
         order.setStatus(RentalOrder.OrderStatus.CANCELLED);
         orderRepository.save(order);
 
-        // Xóa lịch availability để nhả xe cho người khác thuê
+        // Xóa lịch bận để các khách hàng khác có thể thuê
         availabilityRepository.deleteByOrderId(orderId);
     }
 
+    /**
+     * Cập nhật trạng thái đơn hàng từ Admin.
+     */
     @Transactional
     public void updateOrderStatus(Long orderId, String statusStr) {
         RentalOrder order = orderRepository.findById(orderId).orElseThrow();
         RentalOrder.OrderStatus newStatus = RentalOrder.OrderStatus.valueOf(statusStr);
 
-        // Nếu chuyển sang Cancelled -> Xóa lịch
+        // Nếu đơn hàng bị hủy, giải phóng lịch bận
         if (newStatus == RentalOrder.OrderStatus.CANCELLED) {
             availabilityRepository.deleteByOrderId(orderId);
         }
 
-        // Nếu trước đó là Cancelled mà chuyển lại Confirmed -> Cần check lại lịch (Phức tạp, tạm bỏ qua cho đơn giản)
-
         order.setStatus(newStatus);
         orderRepository.save(order);
 
-        // Gửi mail báo cập nhật
         emailService.sendOrderStatusUpdateEmail(order.getUser().getEmail(), order, order.getStatus().name(), statusStr);
     }
 
-    // --- Helper Mapping ---
     private OrderDto mapToDto(RentalOrder order) {
         OrderDto dto = modelMapper.map(order, OrderDto.class);
         dto.setUserName(order.getUser().getFullName());
         dto.setUserEmail(order.getUser().getEmail());
 
-        // Map list details
         List<OrderDetailDto> details = order.getOrderDetails().stream().map(d -> {
             OrderDetailDto dDto = modelMapper.map(d, OrderDetailDto.class);
             dDto.setVehicleName(d.getVehicle().getName());
@@ -182,7 +182,6 @@ public class OrderService {
         }).collect(Collectors.toList());
         dto.setOrderDetails(details);
 
-        // Map payment if exists
         if (order.getPayment() != null) {
             dto.setPayment(modelMapper.map(order.getPayment(), PaymentDto.class));
         }

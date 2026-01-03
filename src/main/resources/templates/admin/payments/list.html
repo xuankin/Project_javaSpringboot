@@ -1,39 +1,70 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
+<head>
+    <title>Quản lý thanh toán</title>
+</head>
 <body>
 <section>
-    <h2 class="mb-4">Quản lý Thanh toán</h2>
+    <h2 class="mb-4">Lịch sử giao dịch</h2>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
     <div class="card shadow-sm">
         <div class="card-body">
-            <table class="table table-bordered">
-                <thead class="table-light">
-                <tr>
-                    <th>ID</th>
-                    <th>Đơn hàng</th>
-                    <th>Số tiền</th>
-                    <th>Phương thức</th>
-                    <th>Ngày thanh toán</th>
-                    <th>Thao tác</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="payment : ${payments}">
-                    <td th:text="${payment.id}"></td>
-                    <td th:text="${'#' + payment.order.id}"></td>
-                    <td th:text="${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
-                    <td th:text="${payment.paymentMethod}"></td>
-                    <td th:text="${payment.paymentDate}"></td>
-                    <td>
-                        <form th:if="${payment.paymentMethod.name() == 'CASH'}"
-                              th:action="@{/admin/payments/{orderId}/confirm-cash(orderId=${payment.order.id})}"
-                              method="post">
-                            <button class="btn btn-sm btn-success">Xác nhận đã thu tiền</button>
-                        </form>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Mã GD</th>
+                        <th>Mã đơn hàng</th> <th>Số tiền</th>
+                        <th>Phương thức</th>
+                        <th>Ngày thanh toán</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="payment : ${payments}">
+                        <td th:text="${payment.transactionId}"></td>
+
+                        <td>
+                            <a th:if="${payment.orderCode != null}"
+                               th:href="@{/admin/orders}"
+                               th:text="${payment.orderCode}"
+                               class="text-decoration-none fw-bold">
+                            </a>
+                        </td>
+
+                        <td class="text-success fw-bold"
+                            th:text="${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 0, 'POINT') + ' đ'}">
+                        </td>
+
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${payment.method == 'VNPAY' ? 'bg-primary' : 'bg-secondary'}"
+                                  th:text="${payment.method}">
+                            </span>
+                        </td>
+
+                        <td th:text="${#temporals.format(payment.paymentDate, 'dd-MM-yyyy HH:mm')}"></td>
+
+                        <td>
+                            <span class="badge bg-success" th:text="${payment.paymentStatus}"></span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${#lists.isEmpty(payments)}" class="text-center py-4 text-muted">
+                <p>Chưa có giao dịch nào.</p>
+            </div>
         </div>
     </div>
 </section>

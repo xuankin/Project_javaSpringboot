@@ -3,13 +3,16 @@ package com.motorental.service;
 import com.motorental.dto.vehicle.VehicleDetailDto;
 import com.motorental.dto.vehicle.VehicleDto;
 import com.motorental.entity.Vehicle;
+import com.motorental.entity.VehicleAvailability;
 import com.motorental.entity.VehicleImage;
 import com.motorental.repository.FeedbackRepository;
+import com.motorental.repository.VehicleAvailabilityRepository;
 import com.motorental.repository.VehicleImageRepository;
 import com.motorental.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +31,7 @@ public class VehicleService {
     private static final String URL_PREFIX = "/uploads/";
 
     private final VehicleRepository vehicleRepository;
-    private final VehicleImageRepository vehicleImageRepository;
+    private final VehicleAvailabilityRepository availabilityRepository;
     private final FeedbackRepository feedbackRepository;
     private final ModelMapper modelMapper;
 
@@ -45,10 +48,19 @@ public class VehicleService {
         return vehicleRepository.searchVehicles(keyword, status, pageable).map(this::mapToDto);
     }
 
+    // --- Phương thức mới: Lấy danh sách xe phổ biến (gọi từ HomeController) ---
     public List<VehicleDto> getPopularVehicles() {
         return vehicleRepository.findTopPopularVehicles(Pageable.ofSize(6)).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
+    }
+
+    public List<VehicleAvailability> getFutureBookings(Long vehicleId) {
+        return availabilityRepository.findFutureBookings(
+                vehicleId,
+                List.of(VehicleAvailability.AvailabilityStatus.BOOKED,
+                        VehicleAvailability.AvailabilityStatus.COMPLETED)
+        );
     }
 
     public VehicleDetailDto getVehicleDetail(Long id) {
@@ -81,14 +93,8 @@ public class VehicleService {
     // ADMIN
     // =========================
     @Transactional
-    public void createVehicle(VehicleDto dto, List<MultipartFile> images) {
-        if (vehicleRepository.existsByLicensePlate(dto.getLicensePlate())) {
-            throw new RuntimeException("Biển số xe đã tồn tại!");
-        }
-
+    public void createVehicle(VehicleDto dto, List<MultipartFile> imageFiles) throws IOException {
         Vehicle vehicle = modelMapper.map(dto, Vehicle.class);
-        vehicle.setStatus(Vehicle.VehicleStatus.AVAILABLE);
-        vehicle.setRentalCount(0);
 
         Vehicle saved = vehicleRepository.save(vehicle);
 
@@ -98,10 +104,11 @@ public class VehicleService {
         }
     }
 
+    // --- Phương thức mới: Cập nhật xe (gọi từ AdminVehicleController) ---
     @Transactional
-    public void updateVehicle(Long id, VehicleDto dto, List<MultipartFile> images) {
+    public void updateVehicle(Long id, VehicleDto dto, List<MultipartFile> imageFiles) throws IOException {
         Vehicle vehicle = vehicleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Xe không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
 
         // ✅ Check trùng biển số (trừ chính nó)
         String newPlate = dto.getLicensePlate();
@@ -116,10 +123,11 @@ public class VehicleService {
 
         // Update basic info
         vehicle.setName(dto.getName());
+        vehicle.setLicensePlate(dto.getLicensePlate());
+        vehicle.setDescription(dto.getDescription());
+        vehicle.setPricePerDay(dto.getPricePerDay());
         vehicle.setBrand(dto.getBrand());
         vehicle.setModel(dto.getModel());
-        vehicle.setPricePerDay(dto.getPricePerDay());
-        vehicle.setDescription(dto.getDescription());
         vehicle.setYear(dto.getYear());
         vehicle.setColor(dto.getColor());
 
@@ -133,8 +141,11 @@ public class VehicleService {
         if (hasNewImages(images)) {
             replaceImages(vehicle, images);
         }
+
+        vehicleRepository.save(vehicle);
     }
 
+    // --- Phương thức mới: Xóa xe (gọi từ AdminVehicleController) ---
     @Transactional
     public void deleteVehicle(Long id) {
         vehicleRepository.deleteById(id);
@@ -217,6 +228,9 @@ public class VehicleService {
         } catch (IOException e) {
             throw new RuntimeException("Lỗi lưu file: " + e.getMessage());
         }
+
+        // Trả về đường dẫn tương đối để lưu vào DB (ví dụ: /uploads/abc.jpg)
+        return "/" + UPLOAD_DIR + fileName;
     }
 
     private void deleteFileByUrl(String imageUrl) {

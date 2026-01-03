@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Data
@@ -17,8 +16,10 @@ import java.time.LocalDateTime;
 public class FeedbackDto {
     private Long id;
 
-    @NotNull
+    @NotNull(message = "Thiếu mã xe")
     private Long vehicleId;
+
+    // Đã xóa orderId vì cho phép đánh giá tự do
 
     private String vehicleName;
     private String userName;
@@ -28,6 +29,8 @@ public class FeedbackDto {
     @Max(value = 5, message = "Tối đa 5 sao")
     private Integer rating;
 
-    private String content;
+    // Tên biến là 'comment' => Bên HTML phải đặt name="comment"
+    private String comment;
+
     private LocalDateTime createdAt;
 }

@@ -11,43 +11,59 @@
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
     <div class="table-responsive">
-        <table class="table table-hover">
-            <thead class="table-light">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
             <tr>
-                <th>Mã đơn</th>
-                <th>Ngày đặt</th>
-                <th>Xe thuê</th>
+                <th>Mã ĐH</th>
+                <th>Xe</th>
+                <th>Ngày nhận</th>
+                <th>Ngày trả</th>
                 <th>Tổng tiền</th>
                 <th>Trạng thái</th>
-                <th>Thao tác</th>
+                <th>Hành động</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="order : ${orders}">
-                <td class="fw-bold" th:text="${order.orderCode}"></td>
-                <td th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy')}"></td>
+                <td th:text="'#' + ${order.id}"></td>
                 <td>
-                    <ul class="list-unstyled mb-0">
-                        <li th:each="detail : ${order.orderDetails}" th:text="${detail.vehicleName}"></li>
-                    </ul>
+                    <a th:href="@{/vehicles/detail/{id}(id=${order.vehicleId})}"
+                       class="text-decoration-none fw-bold"
+                       th:text="${order.vehicleName}">Tên xe</a>
                 </td>
-                <td th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                <td th:text="${#temporals.format(order.startDate, 'dd/MM/yyyy')}"></td>
+                <td th:text="${#temporals.format(order.endDate, 'dd/MM/yyyy')}"></td>
+                <td th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'COMMA')} + ' đ'" class="fw-bold text-danger"></td>
                 <td>
-                        <span class="badge"
-                              th:classappend="${order.status == 'COMPLETED' ? 'bg-success' : (order.status == 'PENDING' ? 'bg-warning' : 'bg-secondary')}"
-                              th:text="${order.status}"></span>
+                    <span th:class="'badge ' +
+                        (${order.status.name() == 'PENDING'} ? 'bg-warning' :
+                        (${order.status.name() == 'CONFIRMED'} ? 'bg-primary' :
+                        (${order.status.name() == 'COMPLETED'} ? 'bg-success' : 'bg-danger')))"
+                          th:text="${order.status}">
+                    </span>
                 </td>
                 <td>
-                    <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-sm btn-info text-white">Chi tiết</a>
+                    <a th:href="@{/orders/detail/{id}(id=${order.id})}" class="btn btn-sm btn-info text-white">
+                        <i class="fas fa-eye"></i> Chi tiết
+                    </a>
 
-                    <a th:if="${order.status == 'PENDING' || order.status == 'CONFIRMED'}"
-                       th:href="@{/payments/create/{id}(id=${order.id})}"
-                       class="btn btn-sm btn-primary">Thanh toán</a>
+                    <a th:if="${order.status.name() == 'COMPLETED'}"
+                       th:href="@{/vehicles/detail/{id}(id=${order.vehicleId})}"
+                       class="btn btn-sm btn-outline-warning"
+                       title="Viết đánh giá cho xe này">
+                        <i class="fas fa-star"></i> Đánh giá xe
+                    </a>
                 </td>
             </tr>
             </tbody>
         </table>
     </div>
+
+    <div th:if="${#lists.isEmpty(orders)}" class="alert alert-warning text-center">
+        Bạn chưa có đơn hàng nào. <a href="/" class="alert-link">Đặt xe ngay!</a>
+    </div>
 </div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>
