@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout_admin}">
+<head>
+    <title>Thêm xe mới</title>
+</head>
 <body>
-<section>
-    <div class="row justify-content-center">
+<div layout:fragment="content">
+    <div class="row justify-content-center pt-4">
         <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
@@ -60,7 +64,7 @@
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">
-                            <a href="/admin/vehicles" class="btn btn-secondary">Hủy</a>
+                            <a th:href="@{/admin/vehicles}" class="btn btn-secondary">Hủy</a>
                             <button type="submit" class="btn btn-success">Lưu xe</button>
                         </div>
                     </form>
@@ -68,6 +72,6 @@
             </div>
         </div>
     </div>
-</section>
+</div>
 </body>
 </html>

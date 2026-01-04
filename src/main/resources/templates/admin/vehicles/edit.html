@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout_admin}">
+<head>
+    <title>Cập nhật xe</title>
+</head>
 <body>
-<section>
-    <div class="row justify-content-center">
+<div layout:fragment="content">
+    <div class="row justify-content-center pt-4">
         <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-header bg-warning text-dark">
@@ -11,7 +15,7 @@
                 </div>
 
                 <div class="card-body">
-                    <form th:action="@{/admin/vehicles/edit/{id}(id=${vehicle.id != null ? vehicle.id : vehicleId})}"
+                    <form th:action="@{/admin/vehicles/edit/{id}(id=${vehicle.id})}"
                           method="post"
                           enctype="multipart/form-data"
                           th:object="${vehicle}">
@@ -66,25 +70,24 @@
                             <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
                         </div>
 
-                        <!-- Ảnh hiện tại: dùng currentImageUrls + cache-busting -->
                         <div class="mb-3" th:if="${not #lists.isEmpty(currentImageUrls)}">
                             <label class="form-label">Ảnh hiện tại:</label>
                             <div class="d-flex flex-wrap gap-2" id="currentImages">
                                 <img th:each="img : ${currentImageUrls}"
-                                     th:src="@{${img}(v=${#dates.createNow().time})}"
+                                     th:src="@{${img}}"
                                      width="110" class="img-thumbnail"/>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Tải lên ảnh mới</label>
+                            <label class="form-label">Tải lên ảnh mới (sẽ thay thế hoặc bổ sung tùy logic backend)</label>
                             <input type="file" id="imageFiles" name="imageFiles"
                                    class="form-control" multiple accept="image/*">
                             <div id="previewImages" class="d-flex flex-wrap gap-2 mt-2"></div>
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">
-                            <a href="/admin/vehicles" class="btn btn-secondary">Hủy</a>
+                            <a th:href="@{/admin/vehicles}" class="btn btn-secondary">Hủy</a>
                             <button type="submit" class="btn btn-warning">Cập nhật</button>
                         </div>
                     </form>
@@ -97,20 +100,22 @@
         const input = document.getElementById('imageFiles');
         const preview = document.getElementById('previewImages');
 
-        input?.addEventListener('change', () => {
-            preview.innerHTML = '';
-            [...input.files].forEach(file => {
-                if (!file.type.startsWith('image/')) return;
-                const img = document.createElement('img');
-                img.width = 110;
-                img.className = 'img-thumbnail';
-                const url = URL.createObjectURL(file);
-                img.src = url;
-                img.onload = () => URL.revokeObjectURL(url);
-                preview.appendChild(img);
+        if (input) {
+            input.addEventListener('change', () => {
+                preview.innerHTML = '';
+                [...input.files].forEach(file => {
+                    if (!file.type.startsWith('image/')) return;
+                    const img = document.createElement('img');
+                    img.width = 110;
+                    img.className = 'img-thumbnail';
+                    const url = URL.createObjectURL(file);
+                    img.src = url;
+                    img.onload = () => URL.revokeObjectURL(url);
+                    preview.appendChild(img);
+                });
             });
-        });
+        }
     </script>
-</section>
+</div>
 </body>
 </html>

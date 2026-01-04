@@ -35,19 +35,24 @@ public class RentalOrder extends BaseEntity {
     @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
 
-    @Column(columnDefinition = "TEXT") // Sửa thành TEXT cho đồng bộ
+    // --- THÊM TRƯỜNG MỚI: NƠI NHẬN XE ---
+    @Column(name = "pickup_location", length = 255)
+    private String pickupLocation;
+    // -------------------------------------
+
+    @Column(columnDefinition = "TEXT")
     private String notes;
 
     // --- Relationships ---
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @ToString.Exclude // Ngắt vòng lặp
+    @ToString.Exclude
     private User user;
 
     @OneToMany(mappedBy = "rentalOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    @ToString.Exclude // Ngắt vòng lặp
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<OrderDetail> orderDetails = new HashSet<>();
 
@@ -76,7 +81,6 @@ public class RentalOrder extends BaseEntity {
     @PrePersist
     private void generateOrderCode() {
         if (orderCode == null) {
-            // Logic tạo mã đơn: ORD + timestamp (đơn giản) hoặc dùng UUID
             orderCode = "ORD" + System.currentTimeMillis();
         }
     }

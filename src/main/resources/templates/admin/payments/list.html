@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout_admin}">
 <head>
-    <title>Quản lý thanh toán</title>
+    <title>Quản lý Thanh toán</title>
 </head>
 <body>
-<section>
-    <h2 class="mb-4">Lịch sử giao dịch</h2>
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
+        <h2>Lịch sử Giao dịch</h2>
+    </div>
 
     <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
         <span th:text="${success}"></span>
@@ -24,10 +27,13 @@
                     <thead class="table-light">
                     <tr>
                         <th>Mã GD</th>
-                        <th>Mã đơn hàng</th> <th>Số tiền</th>
+                        <th>Đơn hàng</th>
+                        <th>Khách hàng</th>
+                        <th>Số tiền</th>
                         <th>Phương thức</th>
-                        <th>Ngày thanh toán</th>
+                        <th>Ngày tạo</th>
                         <th>Trạng thái</th>
+                        <th>Hành động</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -35,38 +41,54 @@
                         <td th:text="${payment.transactionId}"></td>
 
                         <td>
-                            <a th:if="${payment.orderCode != null}"
-                               th:href="@{/admin/orders}"
-                               th:text="${payment.orderCode}"
-                               class="text-decoration-none fw-bold">
-                            </a>
+                            <a th:href="@{/admin/orders/detail/{id}(id=${payment.orderId})}"
+                               th:text="'#' + ${payment.orderId}"
+                               class="fw-bold text-decoration-none"></a>
                         </td>
 
-                        <td class="text-success fw-bold"
-                            th:text="${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 0, 'POINT') + ' đ'}">
-                        </td>
+                        <td th:text="${payment.userName}"></td>
+
+                        <td class="fw-bold text-success"
+                            th:text="${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
 
                         <td>
-                            <span class="badge"
-                                  th:classappend="${payment.method == 'VNPAY' ? 'bg-primary' : 'bg-secondary'}"
-                                  th:text="${payment.method}">
-                            </span>
+                            <span class="badge bg-info text-dark" th:text="${payment.paymentMethod}"></span>
                         </td>
 
                         <td th:text="${#temporals.format(payment.paymentDate, 'dd-MM-yyyy HH:mm')}"></td>
 
                         <td>
-                            <span class="badge bg-success" th:text="${payment.paymentStatus}"></span>
+                            <span class="badge"
+                                  th:classappend="${payment.status.toString() == 'COMPLETED' ? 'bg-success' :
+                                                   (payment.status.toString() == 'FAILED' ? 'bg-danger' : 'bg-warning text-dark')}"
+                                  th:text="${payment.status}">
+                            </span>
                         </td>
+
+                        <td>
+                            <form th:if="${payment.paymentMethod.toString() == 'CASH' && payment.status.toString() == 'PENDING'}"
+                                  th:action="@{/admin/payments/confirm/{id}(id=${payment.id})}"
+                                  method="post"
+                                  onsubmit="return confirm('Xác nhận đã nhận đủ tiền mặt từ khách hàng?');">
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="Xác nhận đã thu tiền">
+                                    <i class="fas fa-check"></i> Xác nhận
+                                </button>
+                            </form>
+
+                            <span th:if="${payment.status.toString() == 'COMPLETED'}" class="text-success small">
+                                <i class="fas fa-check-circle"></i> Đã xong
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(payments)}">
+                        <td colspan="8" class="text-center py-4 text-muted">Chưa có giao dịch nào.</td>
                     </tr>
                     </tbody>
                 </table>
             </div>
-            <div th:if="${#lists.isEmpty(payments)}" class="text-center py-4 text-muted">
-                <p>Chưa có giao dịch nào.</p>
-            </div>
         </div>
     </div>
-</section>
+</div>
 </body>
 </html>

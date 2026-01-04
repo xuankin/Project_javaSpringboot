@@ -49,8 +49,15 @@
                 <form th:action="@{/orders/create}" method="post" th:object="${order}">
 
                     <div class="mb-3">
+                        <label class="form-label fw-bold">Nơi nhận xe <span class="text-danger">*</span></label>
+                        <input type="text" th:field="*{pickupLocation}" class="form-control"
+                               placeholder="Nhập địa chỉ bạn muốn nhận xe (VD: Sân bay, Khách sạn...)" required>
+                        <div class="invalid-feedback">Vui lòng nhập nơi nhận xe.</div>
+                        <div th:if="${#fields.hasErrors('pickupLocation')}" th:errors="*{pickupLocation}" class="text-danger small mt-1"></div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label fw-bold">Ghi chú đơn hàng (Tùy chọn)</label>
-                        <textarea th:field="*{notes}" class="form-control" rows="3" placeholder="Ví dụ: Giao xe tại sân bay..."></textarea>
+                        <textarea th:field="*{notes}" class="form-control" rows="3" placeholder="Ví dụ: Giao xe lúc 9h sáng..."></textarea>
                     </div>
 
                     <hr class="my-4">

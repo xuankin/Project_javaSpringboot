@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/admin/orders") // SỬA: Bỏ "templates/"
+@RequestMapping("/admin/orders")
 @RequiredArgsConstructor
 public class AdminOrderController {
 
@@ -17,7 +17,17 @@ public class AdminOrderController {
     @GetMapping
     public String list(Model model) {
         model.addAttribute("orders", orderService.getAllOrders());
-        return "admin/orders/list"; // SỬA: Bỏ "templates/"
+        return "admin/orders/list";
+    }
+
+    @GetMapping("/detail/{id}")
+    public String viewDetail(@PathVariable Long id, Model model) {
+        try {
+            model.addAttribute("order", orderService.getOrderById(id));
+            return "admin/orders/detail";
+        } catch (Exception e) {
+            return "redirect:/admin/orders";
+        }
     }
 
     @PostMapping("/{id}/update-status")
@@ -28,8 +38,9 @@ public class AdminOrderController {
             orderService.updateOrderStatus(id, status);
             redirectAttributes.addFlashAttribute("success", "Cập nhật trạng thái thành công.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
         }
-        return "redirect:/admin/orders";
+        // Redirect về lại trang chi tiết để admin thấy ngay thay đổi
+        return "redirect:/admin/orders/detail/" + id;
     }
 }

@@ -14,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.stream.Collectors; // Cần thêm cái này để map Role
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,23 +51,24 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // SỬA: Map thủ công để lấy được danh sách tên Role chính xác
+    public UserDto findByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với email: " + email));
+        return mapToDto(user);
+    }
+
+    // --- SỬA ĐỔI: Thêm phương thức tìm theo Username ---
+    public UserDto findByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với username: " + username));
+        return mapToDto(user);
+    }
+    // ---------------------------------------------------
+
     public UserDto getUserProfile(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
-
-        return UserDto.builder()
-                .id(user.getId() != null ? user.getId().toString() : null)
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .fullName(user.getFullName())
-                .phoneNumber(user.getPhoneNumber())
-                .isActive(user.getIsActive())
-                // Chuyển đổi Set<Role> thành Set<String> (tên role)
-                .roles(user.getRoles().stream()
-                        .map(Role::getName)
-                        .collect(Collectors.toSet()))
-                .build();
+        return mapToDto(user);
     }
 
     @Transactional
@@ -74,12 +76,38 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-        // Chỉ cập nhật các trường cho phép
         user.setFullName(userDto.getFullName());
         user.setPhoneNumber(userDto.getPhoneNumber());
-
-        // Không cập nhật username, email, password ở đây
-
         userRepository.save(user);
     }
+
+    private UserDto mapToDto(User user) {
+        return UserDto.builder()
+                .id(user.getId() != null ? user.getId().toString() : null)
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
+                .isActive(user.getIsActive())
+                .roles(user.getRoles().stream()
+                        .map(Role::getName)
+                        .collect(Collectors.toSet()))
+                .build();
+    }
+    public List<UserDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteUser(String id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("Người dùng không tồn tại");
+        }
+        // Có thể thêm logic kiểm tra: Không cho phép xóa chính mình hoặc xóa Admin khác
+        userRepository.deleteById(id);
+    }
+
+
 }

@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head}"></head>
 <head>
+    <th:block th:replace="~{fragments/head :: head}"></th:block>
+
+    <title>Trang chủ - MotoRental</title>
+
     <style>
-        /* CSS giữ nguyên như cũ */
         .hero-section { background: linear-gradient(135deg, #1e88e5 0%, #42d392 100%); padding-top: 80px; padding-bottom: 120px; position: relative; margin-bottom: 4rem; }
         .stats-container { margin-top: -60px; position: relative; z-index: 10; }
         .stat-card { background: #f3e5f5; border-radius: 15px; padding: 20px; text-align: center; color: #4a148c; border: 1px solid rgba(255,255,255,0.5); transition: transform 0.3s ease; box-shadow: 0 10px 25px rgba(106, 27, 154, 0.15); }
@@ -22,7 +24,6 @@
         .btn-action { border-radius: 8px; font-weight: 600; padding: 8px 0; transition: all 0.2s; }
         .btn-cart { background-color: #0984e3; color: white; border: none; }
         .btn-cart:hover { background-color: #74b9ff; color: white; }
-        /* Đổi màu nút Xem chi tiết sang màu cam hoặc tím để khác biệt */
         .btn-detail { background-color: #fd79a8; color: white; border: none; }
         .btn-detail:hover { background-color: #e84393; color: white; }
         .btn-banner { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5); color: white; }
@@ -159,13 +160,9 @@
             </div>
         </div>
     </div>
-
-    <div th:if="${vehicles != null and vehicles.isEmpty()}" class="text-center py-5">
-        <i class="fas fa-search fa-3x text-muted mb-3"></i>
-        <h4 class="text-muted">Không tìm thấy chiếc xe nào!</h4>
-        <a href="/" class="btn btn-outline-primary mt-2">Xem tất cả xe</a>
-    </div>
 </div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

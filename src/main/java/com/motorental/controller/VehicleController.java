@@ -33,7 +33,8 @@ public class VehicleController {
             @PageableDefault(size = 9) Pageable pageable,
             Model model) {
 
-        Page<VehicleDetailDto> vehiclePage = vehicleService.searchVehicles(keyword, maxPrice, pageable);
+        // [FIX] Gọi hàm searchVehiclesDetail thay vì searchVehicles
+        Page<VehicleDetailDto> vehiclePage = vehicleService.searchVehiclesDetail(keyword, maxPrice, pageable);
 
         model.addAttribute("vehicles", vehiclePage.getContent());
         model.addAttribute("currentPage", vehiclePage.getNumber());
@@ -45,24 +46,17 @@ public class VehicleController {
     }
 
     // Trang chi tiết xe
-    // [FIX] Mapping phải khớp với link trong list.html là /vehicles/detail/{id}
     @GetMapping("/detail/{id}")
     public String vehicleDetail(@PathVariable Long id, Model model) {
-        // 1. Lấy thông tin xe
         VehicleDetailDto vehicle = vehicleService.getVehicleDetail(id);
         model.addAttribute("vehicle", vehicle);
 
-        // 2. Lấy danh sách đánh giá (Feedback)
         List<FeedbackDto> feedbacks = feedbackService.getFeedbacksByVehicleId(id);
         model.addAttribute("feedbacks", feedbacks);
-
-        // Form feedback rỗng để người dùng nhập mới (nếu cần)
         model.addAttribute("feedback", new FeedbackDto());
 
-        // 3. Lấy lịch xe đã đặt (để chặn trên giao diện)
         List<VehicleAvailability> bookings = vehicleService.getFutureBookings(id);
 
-        // [QUAN TRỌNG] Chuyển đổi sang định dạng JSON-friendly cho Flatpickr (JavaScript)
         List<Map<String, String>> blockedDates = bookings.stream()
                 .map(b -> Map.of(
                         "from", b.getStartDate().toString(),

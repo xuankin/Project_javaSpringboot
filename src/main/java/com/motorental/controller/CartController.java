@@ -37,24 +37,19 @@ public class CartController {
         try {
             String userId = getUserId(userDetails);
 
-            // 2. Thêm xe vào giỏ
             cartService.addToCart(userId, dto);
 
-            // 3. Nếu bấm "Thuê ngay" -> Sang trang Checkout
+            // SỬA LỖI TẠI ĐÂY: Chuyển hướng đến đúng controller /orders/checkout
             if ("checkout".equals(redirect)) {
-                return "redirect:/checkout";
+                return "redirect:/orders/checkout";
             }
 
-            // 4. Nếu bấm "Thêm vào giỏ" -> Quay lại trang chi tiết xe
             redirectAttributes.addFlashAttribute("success", "Đã thêm vào giỏ hàng!");
-
-            // [SỬA LỖI TẠI ĐÂY] Thêm "/detail" vào đường dẫn redirect
             return "redirect:/vehicles/detail/" + dto.getVehicleId();
 
         } catch (Exception e) {
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
-            // [SỬA LỖI TẠI ĐÂY] Cũng sửa đường dẫn khi có lỗi
             return "redirect:/vehicles/detail/" + dto.getVehicleId();
         }
     }

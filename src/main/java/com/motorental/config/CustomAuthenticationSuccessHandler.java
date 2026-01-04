@@ -18,10 +18,11 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
 
+        // Kiểm tra role ADMIN (Spring Security thường lưu là ROLE_ADMIN)
         if (roles.contains("ROLE_ADMIN")) {
-            response.sendRedirect("/admin/dashboard"); // Chuyển Admin đến Dashboard
+            response.sendRedirect("/admin/dashboard");
         } else {
-            response.sendRedirect("/"); // Chuyển User về trang chủ
+            response.sendRedirect("/");
         }
     }
 }

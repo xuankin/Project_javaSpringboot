@@ -20,4 +20,6 @@ public class PaymentDto {
     private String transactionId;
     private LocalDateTime paymentDate;
     private String orderCode; // Reference ngược lại Order Code
+    private String userName;
+    private Long orderId;
 }

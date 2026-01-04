@@ -5,7 +5,7 @@ import com.motorental.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService; // Bắt buộc
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CustomUserDetailsService implements UserDetailsService { // Phải implements UserDetailsService
+public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
@@ -32,7 +32,14 @@ public class CustomUserDetailsService implements UserDetailsService { // Phải 
                 user.getUsername(),
                 user.getPasswordHash(),
                 user.getRoles().stream()
-                        .map(role -> new SimpleGrantedAuthority(role.getName()))
+                        .map(role -> {
+                            String roleName = role.getName();
+                            // Đảm bảo luôn có prefix ROLE_ cho Security
+                            if (!roleName.startsWith("ROLE_")) {
+                                roleName = "ROLE_" + roleName;
+                            }
+                            return new SimpleGrantedAuthority(roleName);
+                        })
                         .collect(Collectors.toList())
         );
     }

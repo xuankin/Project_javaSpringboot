@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout_admin}">
+<head>
+    <title>Quản lý Xe</title>
+</head>
 <body>
-<section>
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
         <h2>Quản lý Xe</h2>
-        <a href="/admin/vehicles/create" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm xe mới</a>
+        <a th:href="@{/admin/vehicles/create}" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm xe mới</a>
     </div>
 
     <div class="card shadow-sm">
@@ -33,22 +37,22 @@
                 </thead>
                 <tbody>
                 <tr th:each="vehicle : ${vehicles}">
-                    <td th:text="${vehicle.id}">1</td>
+                    <td th:text="${vehicle.id}"></td>
                     <td>
                         <img th:if="${vehicle.primaryImageUrl}" th:src="${vehicle.primaryImageUrl}" width="80" class="img-thumbnail">
                         <span th:unless="${vehicle.primaryImageUrl}" class="text-muted">No Image</span>
                     </td>
                     <td>
-                        <strong th:text="${vehicle.name}">Honda Vision</strong><br>
+                        <strong th:text="${vehicle.name}"></strong><br>
                         <small class="text-muted"
-                               th:text="${vehicle.brand + ' - ' + (vehicle.model != null ? vehicle.model : 'N/A') + (vehicle.year != null ? ' (' + vehicle.year + ')' : '')}"></small>
+                               th:text="${vehicle.brand + ' - ' + (vehicle.model != null ? vehicle.model : '') + (vehicle.year != null ? ' (' + vehicle.year + ')' : '')}"></small>
                     </td>
-                    <td th:text="${vehicle.licensePlate}">29A1-12345</td>
-                    <td th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'COMMA', 0, 'POINT')}">150,000</td>
+                    <td th:text="${vehicle.licensePlate}"></td>
+                    <td th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
                     <td>
                         <span class="badge"
                               th:classappend="${vehicle.status == 'AVAILABLE' ? 'bg-success' : (vehicle.status == 'RENTED' ? 'bg-warning' : 'bg-secondary')}"
-                              th:text="${vehicle.status}">Available</span>
+                              th:text="${vehicle.status}"></span>
                     </td>
                     <td>
                         <a th:href="@{/admin/vehicles/edit/{id}(id=${vehicle.id})}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
@@ -61,6 +65,6 @@
             </table>
         </div>
     </div>
-</section>
+</div>
 </body>
 </html>

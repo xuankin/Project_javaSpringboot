@@ -1,118 +1,56 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{admin/layout_admin :: admin-layout(~{::section})}">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout_admin}">
 <head>
     <title>Admin Dashboard</title>
 </head>
 <body>
-<section>
-    <h2 class="mb-4">Tổng quan hệ thống</h2>
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Dashboard</h1>
+    </div>
 
-    <div class="row">
-        <div class="col-md-3 mb-4">
-            <div class="card text-white bg-primary h-100 shadow-sm">
+    <div class="row" th:if="${stats}">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-0">Doanh thu tổng</h6>
-                            <h3 class="my-2" th:text="${#numbers.formatDecimal(stats.totalRevenue, 0, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</h3>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Doanh thu tháng này</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"
+                                 th:text="${#numbers.formatDecimal(stats.monthlyRevenue, 0, 'COMMA', 0, 'POINT') + ' đ'}">0</div>
                         </div>
-                        <i class="fas fa-dollar-sign fa-2x opacity-50"></i>
-                    </div>
-                    <small>Tháng này: <span th:text="${#numbers.formatDecimal(stats.monthlyRevenue, 0, 'COMMA', 0, 'POINT')}"></span> đ</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card text-white bg-warning h-100 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-0">Đơn chờ duyệt</h6>
-                            <h2 class="my-2" th:text="${stats.pendingOrders}">0</h2>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
                         </div>
-                        <i class="fas fa-clock fa-2x opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card text-white bg-info h-100 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-0">Xe đang thuê</h6>
-                            <h2 class="my-2" th:text="${stats.rentedVehicles}">0</h2>
-                        </div>
-                        <i class="fas fa-motorcycle fa-2x opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card text-white bg-success h-100 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-0">Đơn thành công</h6>
-                            <h2 class="my-2" th:text="${stats.completedOrders}">0</h2>
-                        </div>
-                        <i class="fas fa-check-circle fa-2x opacity-50"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm mt-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-bold">Đơn hàng mới nhất</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Mã đơn</th> <th>Khách hàng</th>
-                        <th>Ngày đặt</th> <th>Tổng tiền</th>
-                        <th>Trạng thái</th>
-                        <th>Hành động</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="order : ${stats.recentOrders}">
-                        <td class="fw-bold" th:text="${order.orderCode}"></td>
-
-                        <td th:text="${order.user.fullName}"></td>
-
-                        <td th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
-
-                        <td class="text-danger fw-bold" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
-
-                        <td>
-                            <span class="badge"
-                                  th:classappend="${
-                                    order.status.name() == 'PENDING' ? 'bg-warning text-dark' :
-                                    (order.status.name() == 'CONFIRMED' ? 'bg-primary' :
-                                    (order.status.name() == 'COMPLETED' ? 'bg-success' : 'bg-secondary'))
-                                  }"
-                                  th:text="${order.status}">
-                            </span>
-                        </td>
-                        <td>
-                            <a th:href="@{/admin/orders/detail/{id}(id=${order.id})}" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye"></i> Xem
-                            </a>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <h3>Đơn hàng gần đây</h3>
+    <div class="table-responsive">
+        <table class="table table-striped table-sm">
+            <thead>
+            <tr>
+                <th scope="col">Mã đơn</th>
+                <th scope="col">Khách hàng</th>
+                <th scope="col">Tổng tiền</th>
+                <th scope="col">Trạng thái</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="order : ${recentOrders}">
+                <td th:text="${order.orderCode}"></td>
+                <td th:text="${order.userName}"></td>
+                <td th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT')}"></td>
+                <td th:text="${order.status}"></td>
+            </tr>
+            </tbody>
+        </table>
     </div>
-</section>
+</div>
 </body>
 </html>

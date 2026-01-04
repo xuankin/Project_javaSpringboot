@@ -3,106 +3,123 @@ package com.motorental.controller;
 import com.motorental.dto.cart.CartDto;
 import com.motorental.dto.order.CreateOrderDto;
 import com.motorental.dto.order.OrderDto;
-import com.motorental.repository.UserRepository;
+import com.motorental.dto.user.UserDto;
 import com.motorental.service.CartService;
 import com.motorental.service.OrderService;
-import jakarta.validation.Valid;
+import com.motorental.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
+import java.security.Principal;
 
 @Controller
+@RequestMapping("/orders")
 @RequiredArgsConstructor
 public class OrderController {
 
     private final OrderService orderService;
     private final CartService cartService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
+    // --- Endpoint hiển thị trang Checkout ---
     @GetMapping("/checkout")
-    public String checkoutPage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        String userId = getUserId(userDetails);
-        CartDto cart = cartService.getCartByUserId(userId);
+    public String checkoutPage(Model model, Principal principal, RedirectAttributes redirectAttributes) {
+        if (principal == null) return "redirect:/login";
 
-        if (cart.getItems().isEmpty()) {
-            return "redirect:/cart";
-        }
-
-        model.addAttribute("cart", cart);
-        model.addAttribute("order", new CreateOrderDto());
-        return "orders/checkout";
-    }
-
-    @PostMapping("/orders/create")
-    public String createOrder(@AuthenticationPrincipal UserDetails userDetails,
-                              @Valid @ModelAttribute("order") CreateOrderDto dto,
-                              RedirectAttributes redirectAttributes) {
         try {
-            String userId = getUserId(userDetails);
-            OrderDto order = orderService.createOrderFromCart(userId, dto);
+            String userId = userService.findByUsername(principal.getName()).getId();
+            CartDto cart = cartService.getCartByUserId(userId);
 
-            // --- ĐOẠN ĐÃ SỬA: Phân luồng thanh toán ---
-
-            // 1. Nếu là Tiền mặt (CASH) -> Xong luôn, về trang chi tiết
-            if ("CASH".equals(dto.getPaymentMethod())) {
-                redirectAttributes.addFlashAttribute("success", "Đặt xe thành công! Vui lòng thanh toán khi nhận xe.");
-                return "redirect:/orders/" + order.getId();
+            if (cart.getItems().isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Giỏ hàng trống, vui lòng chọn xe trước.");
+                return "redirect:/vehicles";
             }
 
-            // 2. Nếu là VNPay (hoặc Online khác) -> Chuyển sang trang thanh toán
-            return "redirect:/payments/create/" + order.getId();
-
-            // ------------------------------------------
-
+            model.addAttribute("cart", cart);
+            model.addAttribute("order", new CreateOrderDto()); // Object để bind form
+            return "orders/checkout";
         } catch (Exception e) {
-            // In lỗi ra log để debug (tùy chọn)
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Lỗi tạo đơn hàng: " + e.getMessage());
-            return "redirect:/checkout";
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+            return "redirect:/cart";
         }
     }
 
+    // --- [ĐÃ SỬA] Xử lý tạo đơn hàng và điều hướng thanh toán ---
+    @PostMapping("/create")
+    public String createOrder(@ModelAttribute("order") CreateOrderDto createOrderDto,
+                              BindingResult result,
+                              Principal principal,
+                              Model model,
+                              RedirectAttributes redirectAttributes) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        try {
+            String userId = userService.findByUsername(principal.getName()).getId();
+
+            // 1. Tạo đơn hàng (Lưu xuống DB)
+            OrderDto order = orderService.createOrderFromCart(userId, createOrderDto);
+
+            // 2. [QUAN TRỌNG] Kiểm tra phương thức thanh toán để điều hướng
+            // Nếu khách chọn VNPAY -> Chuyển sang PaymentController để tạo URL
+            if ("VNPAY".equalsIgnoreCase(createOrderDto.getPaymentMethod())) {
+                return "redirect:/payments/vnpay/" + order.getId();
+            }
+
+            // Nếu là Tiền mặt (hoặc mặc định) -> Về trang chi tiết đơn
+            redirectAttributes.addFlashAttribute("success", "Đặt xe thành công! Mã đơn: " + order.getOrderCode());
+            return "redirect:/orders/detail/" + order.getId();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/orders/checkout";
+        }
+    }
+
+    // --- Các hàm cũ giữ nguyên ---
     @GetMapping("/my-orders")
-    public String myOrders(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        String userId = getUserId(userDetails);
-        List<OrderDto> orders = orderService.getOrdersByUserId(userId);
-        model.addAttribute("orders", orders);
+    public String myOrders(Model model, Principal principal) {
+        if (principal == null) return "redirect:/login";
+
+        String userId = userService.findByUsername(principal.getName()).getId();
+        model.addAttribute("orders", orderService.getOrdersByUserId(userId));
+
         return "orders/my-orders";
     }
 
-    @GetMapping("/orders/{id}")
-    public String orderDetail(@AuthenticationPrincipal UserDetails userDetails,
-                              @PathVariable Long id,
-                              Model model) {
-        // Có thể thêm check quyền sở hữu đơn hàng ở đây nếu cần bảo mật kỹ hơn
-        OrderDto order = orderService.getOrderById(id);
-        model.addAttribute("order", order);
-        return "orders/detail";
+    @GetMapping("/detail/{id}")
+    public String viewOrderDetail(@PathVariable Long id, Model model, Principal principal) {
+        if (principal == null) return "redirect:/login";
+        try {
+            OrderDto order = orderService.getOrderById(id);
+            UserDto currentUser = userService.findByUsername(principal.getName());
+
+            if (!order.getUserEmail().equals(currentUser.getEmail())) {
+                return "redirect:/error/403";
+            }
+
+            model.addAttribute("order", order);
+            return "orders/detail";
+        } catch (Exception e) {
+            return "redirect:/orders/my-orders";
+        }
     }
 
-    @PostMapping("/orders/{id}/cancel")
-    public String cancelOrder(@AuthenticationPrincipal UserDetails userDetails,
-                              @PathVariable Long id,
-                              RedirectAttributes redirectAttributes) {
+    @PostMapping("/{id}/cancel")
+    public String cancelOrder(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
+        if (principal == null) return "redirect:/login";
         try {
-            String userId = getUserId(userDetails);
+            String userId = userService.findByUsername(principal.getName()).getId();
             orderService.cancelOrder(id, userId);
             redirectAttributes.addFlashAttribute("success", "Đã hủy đơn hàng thành công.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
         }
-        return "redirect:/my-orders";
-    }
-
-    private String getUserId(UserDetails userDetails) {
-        return userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"))
-                .getId();
+        return "redirect:/orders/detail/" + id;
     }
 }

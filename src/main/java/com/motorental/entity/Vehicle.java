@@ -33,7 +33,7 @@ public class Vehicle extends BaseEntity {
     @Column(name = "license_plate", unique = true, nullable = false, length = 50)
     private String licensePlate;
 
-    @Column(columnDefinition = "TEXT") // Hỗ trợ mô tả dài
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @DecimalMin(value = "0.0", inclusive = false, message = "Giá thuê phải lớn hơn 0")
@@ -64,8 +64,9 @@ public class Vehicle extends BaseEntity {
     @Builder.Default
     private Integer rentalCount = 0;
 
-    // --- Relationships (Thêm Exclude) ---
+    // --- Relationships ---
 
+    // Quan trọng: orphanRemoval = true giúp xóa ảnh cũ khi update
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @ToString.Exclude

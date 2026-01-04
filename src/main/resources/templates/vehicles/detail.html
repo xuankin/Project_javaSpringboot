@@ -1,37 +1,77 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: layout(~{::title}, ~{::content})}">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
-    <title th:text="${vehicle.name}">Chi tiết xe</title>
-
+    <th:block th:replace="~{fragments/head :: head}"></th:block>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+
     <style>
-        /* Tùy chỉnh CSS: Gạch ngang và làm mờ ngày đã bị đặt */
-        .flatpickr-day.disabled {
-            background-color: #f0f0f0;
-            color: #ccc;
-            text-decoration: line-through;
-            cursor: not-allowed;
-            border-color: #e6e6e6;
+        /* CSS cho Star Rating */
+        .rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: start;
         }
-        /* Style cho input trông đẹp hơn */
-        .datepicker {
-            background-color: #fff !important; /* Tránh bị xám khi readonly */
+        .rating input {
+            display: none;
+        }
+        .rating label {
+            cursor: pointer;
+            width: 25px;
+            font-size: 25px;
+            color: #ccc;
+        }
+        .rating label:before {
+            content: '\2605'; /* Ký tự ngôi sao */
+        }
+        .rating input:checked ~ label {
+            color: #ffca08; /* Màu vàng khi chọn */
+        }
+        .rating label:hover,
+        .rating label:hover ~ label {
+            color: #ffca08; /* Màu vàng khi hover */
+        }
+        /* Style cho input ngày tháng readonly */
+        .flatpickr-input[readonly] {
+            background-color: #fff !important;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
-<div th:fragment="content" class="container mt-5">
+<nav th:replace="~{fragments/header :: header}"></nav>
+
+<div class="container mt-5 mb-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="/vehicles">Danh sách xe</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${vehicle.name}"></li>
+        </ol>
+    </nav>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
     <div class="row">
-        <div class="col-md-6">
-            <div id="vehicleCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="col-md-7 mb-4">
+            <div id="vehicleCarousel" class="carousel slide shadow-sm rounded" data-bs-ride="carousel">
                 <div class="carousel-inner">
-                    <div th:each="img, iter : ${vehicle.imageUrls}"
+                    <div th:each="img, iterStat : ${vehicle.imageUrls}"
                          class="carousel-item"
-                         th:classappend="${iter.index == 0} ? 'active'">
-                        <img th:src="${img}" class="d-block w-100" alt="Vehicle Image"
-                             style="height: 400px; object-fit: cover; border-radius: 8px;">
+                         th:classappend="${iterStat.index == 0} ? 'active'">
+                        <img th:src="@{${img}}" class="d-block w-100 rounded"
+                             style="height: 450px; object-fit: cover;" alt="Vehicle Image">
+                    </div>
+                    <div th:if="${#lists.isEmpty(vehicle.imageUrls)}" class="carousel-item active">
+                        <img src="https://via.placeholder.com/800x450?text=No+Image" class="d-block w-100 rounded">
                     </div>
                 </div>
                 <button class="carousel-control-prev" type="button" data-bs-target="#vehicleCarousel" data-bs-slide="prev">
@@ -45,93 +85,163 @@
             </div>
         </div>
 
-        <div class="col-md-6">
-            <h2 th:text="${vehicle.name}" class="fw-bold">Tên xe</h2>
-            <p class="text-muted">
-                <i class="fas fa-motorcycle"></i>
-                <span th:text="${vehicle.brand}">Hãng</span> - <span th:text="${vehicle.model}">Mẫu</span>
-                (<span th:text="${vehicle.year}">Năm</span>)
-            </p>
-            <h3 class="text-primary mb-4" th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'COMMA', 0, 'POINT') + ' VND/ngày'}">Giá</h3>
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title fw-bold text-primary" th:text="${vehicle.name}"></h2>
 
-            <p th:text="${vehicle.description}">Mô tả chi tiết...</p>
+                    <div class="mb-3">
+                        <span class="badge bg-warning text-dark fs-6">
+                            <i class="fas fa-star"></i> <span th:text="${vehicle.averageRating}"></span> / 5
+                        </span>
+                        <span class="text-muted ms-2" th:text="'(' + ${#lists.size(feedbacks)} + ' đánh giá)'"></span>
+                    </div>
 
-            <hr class="my-4">
+                    <h3 class="text-danger fw-bold mb-4">
+                        <span th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'POINT', 0, 'COMMA')}"></span> đ/ngày
+                    </h3>
 
-            <form th:action="@{/cart/add}" method="post" class="card p-4 shadow-sm bg-light">
-                <h5 class="mb-3">Đặt lịch thuê xe</h5>
-                <input type="hidden" name="vehicleId" th:value="${vehicle.id}">
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2"><i class="fas fa-motorcycle text-secondary me-2"></i> <strong>Hãng:</strong> <span th:text="${vehicle.brand}"></span></li>
+                        <li class="mb-2"><i class="fas fa-cog text-secondary me-2"></i> <strong>Mẫu:</strong> <span th:text="${vehicle.model}"></span></li>
+                        <li class="mb-2"><i class="fas fa-calendar text-secondary me-2"></i> <strong>Năm SX:</strong> <span th:text="${vehicle.year}"></span></li>
+                        <li class="mb-2"><i class="fas fa-palette text-secondary me-2"></i> <strong>Màu sắc:</strong> <span th:text="${vehicle.color}"></span></li>
+                        <li class="mb-2"><i class="fas fa-id-card text-secondary me-2"></i> <strong>Biển số:</strong> <span th:text="${vehicle.licensePlate}"></span></li>
+                    </ul>
 
-                <div class="mb-3">
-                    <label for="startDate" class="form-label fw-bold">Ngày nhận xe</label>
-                    <input type="text" class="form-control datepicker" id="startDate" name="startDate"
-                           placeholder="Chọn ngày nhận..." required autocomplete="off">
+                    <p class="card-text text-muted" th:text="${vehicle.description}"></p>
+
+                    <hr>
+
+                    <form th:action="@{/cart/add}" method="post">
+                        <input type="hidden" name="vehicleId" th:value="${vehicle.id}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chọn ngày thuê:</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                <input type="text" id="startDate" name="startDate" class="form-control" placeholder="Ngày nhận" required autocomplete="off">
+                                <span class="input-group-text">đến</span>
+                                <input type="text" id="endDate" name="endDate" class="form-control" placeholder="Ngày trả" required autocomplete="off">
+                            </div>
+                            <small class="text-muted fst-italic mt-1 d-block">
+                                <i class="fas fa-info-circle"></i> Các ngày bị mờ là ngày xe đã được đặt.
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="redirect" value="cart" class="btn btn-outline-primary">
+                                <i class="fas fa-cart-plus"></i> Thêm vào giỏ
+                            </button>
+                            <button type="submit" name="redirect" value="checkout" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check"></i> Thuê Ngay
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="mb-3">
-                    <label for="endDate" class="form-label fw-bold">Ngày trả xe</label>
-                    <input type="text" class="form-control datepicker" id="endDate" name="endDate"
-                           placeholder="Chọn ngày trả..." required autocomplete="off">
-                </div>
-
-                <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
-                    <i class="fas fa-cart-plus me-2"></i> Thêm vào giỏ hàng
-                </button>
-            </form>
+            </div>
         </div>
     </div>
 
     <div class="row mt-5">
-        <div class="col-12">
-            <h4>Đánh giá từ khách hàng (<span th:text="${vehicle.averageRating}">0</span>/5 <i class="fas fa-star text-warning"></i>)</h4>
-            <p class="text-muted" th:if="${vehicle.averageRating == 0}">Chưa có đánh giá nào.</p>
+        <div class="col-md-12">
+            <h3 class="border-bottom pb-2 mb-4">Đánh giá & Bình luận</h3>
+
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Đánh giá của bạn</h5>
+                            <form th:action="@{/feedbacks/add}" method="post" th:object="${feedback}">
+                                <input type="hidden" name="vehicleId" th:value="${vehicle.id}">
+
+                                <div class="mb-3 text-center">
+                                    <div class="rating">
+                                        <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Tuyệt vời"></label>
+                                        <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Tốt"></label>
+                                        <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Bình thường"></label>
+                                        <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Tệ"></label>
+                                        <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Rất tệ"></label>
+                                    </div>
+                                    <small class="text-muted">Chọn số sao</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <textarea name="comment" class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm thuê xe của bạn..." required></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100">Gửi đánh giá</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div th:if="${#lists.isEmpty(feedbacks)}" class="alert alert-info">
+                        Chưa có đánh giá nào cho xe này. Hãy là người đầu tiên!
+                    </div>
+
+                    <div th:each="fb : ${feedbacks}" class="card mb-3 shadow-sm border-0">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <i class="fas fa-user-circle fa-2x text-secondary me-2"></i>
+                                    <strong th:text="${fb.userName}" class="fs-5">Khách hàng</strong>
+                                </div>
+                                <small class="text-muted" th:text="${#temporals.format(fb.createdAt, 'dd-MM-yyyy HH:mm')}"></small>
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="text-warning">
+                                    <i th:each="i : ${#numbers.sequence(1, fb.rating)}" class="fas fa-star"></i>
+                                    <i th:if="${fb.rating < 5}" th:each="i : ${#numbers.sequence(fb.rating + 1, 5)}" class="far fa-star text-muted"></i>
+                                </span>
+                            </div>
+
+                            <p class="card-text bg-light p-3 rounded" th:text="${fb.comment}"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
-
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        // Lấy dữ liệu blockedDates từ Model Thymeleaf truyền xuống
-        var blockedDates = /*[[${blockedDates}]]*/ [];
-
-        document.addEventListener('DOMContentLoaded', function() {
-
-            // Cấu hình chung cho lịch
-            const commonConfig = {
-                dateFormat: "Y-m-d", // Định dạng ngày gửi lên server
-                minDate: "today",    // Không cho chọn quá khứ
-                disable: blockedDates, // Danh sách ngày bị khóa (đã đặt)
-                locale: "vn",        // Ngôn ngữ tiếng Việt
-                allowInput: false    // Chỉ cho chọn, không cho gõ tay
-            };
-
-            // Khởi tạo lịch Ngày nhận (Start Date)
-            const fpStartDate = flatpickr("#startDate", {
-                ...commonConfig,
-                onChange: function(selectedDates, dateStr, instance) {
-                    // Khi chọn ngày nhận xong:
-                    // 1. Cập nhật minDate cho ngày trả (phải >= ngày nhận)
-                    fpEndDate.set('minDate', dateStr);
-
-                    // 2. Tự động mở lịch ngày trả lên để chọn luôn cho tiện
-                    setTimeout(() => fpEndDate.open(), 100);
-
-                    // 3. Nếu ngày trả hiện tại < ngày nhận mới chọn => xóa ngày trả
-                    if (fpEndDate.selectedDates[0] && fpEndDate.selectedDates[0] < selectedDates[0]) {
-                        fpEndDate.clear();
-                    }
-                }
-            });
-
-            // Khởi tạo lịch Ngày trả (End Date)
-            const fpEndDate = flatpickr("#endDate", {
-                ...commonConfig
-            });
-        });
-        /*]]>*/
-    </script>
 </div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script> <script th:inline="javascript">
+    /*<![CDATA[*/
+    // Nhận danh sách ngày đã đặt từ Controller
+    const blockedDates = /*[[${blockedDates}]]*/ [];
+
+    const config = {
+        dateFormat: "Y-m-d",
+        minDate: "today",
+        disable: blockedDates, // Tự động disable các khoảng ngày từ backend
+        locale: "vn",
+        allowInput: true
+    };
+
+    // Khởi tạo Start Date
+    const fpStart = flatpickr("#startDate", {
+        ...config,
+        onChange: function(selectedDates, dateStr, instance) {
+            // Khi chọn ngày bắt đầu, cập nhật minDate cho ngày kết thúc
+            if (selectedDates[0]) {
+                fpEnd.set('minDate', dateStr);
+                // Tự động mở lịch ngày kết thúc
+                setTimeout(() => fpEnd.open(), 100);
+            }
+        }
+    });
+
+    // Khởi tạo End Date
+    const fpEnd = flatpickr("#endDate", {
+        ...config
+    });
+    /*]]>*/
+</script>
+
 </body>
 </html>
