@@ -41,7 +41,7 @@ public class PaymentController {
             redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
             return "redirect:/payments/create/" + orderId;
         }
-        return "redirect:/my-orders";
+        return "redirect:/orders/my-orders";
     }
 
     // --- [ĐÃ SỬA] Hàm xử lý VNPay: Hỗ trợ cả GET (từ redirect) và POST ---
@@ -86,6 +86,6 @@ public class PaymentController {
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "Lỗi xác thực: " + e.getMessage());
         }
-        return "redirect:/my-orders";
+        return "redirect:/orders/my-orders";
     }
 }
