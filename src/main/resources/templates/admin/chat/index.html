@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout_admin}">
+<head>
+    <title>Hỗ trợ khách hàng</title>
+    <style>
+        .chat-user-item { cursor: pointer; transition: background 0.2s; }
+        .chat-user-item:hover { background-color: #f1f1f1; }
+        .chat-user-item.active { background-color: #e9ecef; border-left: 4px solid #0d6efd; }
+
+        /* --- Custom Scrollbar CSS --- */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #adb5bd;
+            border-radius: 3px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #6c757d;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Chat với khách hàng</h1>
+    </div>
+
+    <div class="row g-0 border rounded overflow-hidden shadow-sm" style="height: 75vh; background: #fff;">
+
+        <div class="col-md-3 border-end d-flex flex-column bg-light h-100">
+            <div class="p-3 border-bottom">
+                <input type="text" id="search-user" class="form-control" placeholder="Tìm kiếm..." onkeyup="filterUsers()">
+            </div>
+            <div class="list-group list-group-flush overflow-auto flex-grow-1 custom-scroll" id="user-list">
+            </div>
+        </div>
+
+        <div class="col-md-9 d-flex flex-column h-100">
+            <div class="p-3 border-bottom bg-white d-flex align-items-center flex-shrink-0">
+                <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2"
+                     style="width: 40px; height: 40px;" id="header-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0" id="current-chat-user">Chưa chọn khách hàng</h6>
+                    <small class="text-muted" id="chat-status"></small>
+                </div>
+            </div>
+
+            <div class="flex-grow-1 overflow-auto p-3 custom-scroll" id="admin-chat-content" style="background: #f8f9fa;">
+                <div class="text-center text-muted mt-5">Vui lòng chọn một người dùng để xem tin nhắn</div>
+            </div>
+
+            <div class="p-3 bg-white border-top flex-shrink-0">
+                <div class="input-group">
+                    <input type="text" id="admin-chat-input" class="form-control" placeholder="Nhập tin nhắn..." disabled onkeypress="handleAdminEnter(event)">
+                    <button class="btn btn-primary" id="admin-send-btn" onclick="sendAdminReply()" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <script th:inline="javascript">
+        var stompClient = null;
+        var selectedUser = null;
+
+        function initPage() {
+            connectAdmin();
+            loadUserList();
+        }
+
+        function loadUserList() {
+            fetch('/api/chat/users')
+                .then(res => res.json())
+                .then(users => {
+                    var list = document.getElementById('user-list');
+                    list.innerHTML = '';
+                    users.forEach(user => addUserToListUI(user));
+                });
+        }
+
+        function addUserToListUI(username) {
+            var list = document.getElementById('user-list');
+            if(document.getElementById('user-item-' + username)) return;
+
+            var item = document.createElement('div');
+            item.className = 'list-group-item chat-user-item p-3 border-0 border-bottom';
+            item.id = 'user-item-' + username;
+            item.onclick = function() { selectUser(username); };
+            item.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3" style="width: 35px; height: 35px;">
+                        ${username.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 text-dark user-name">${username}</h6>
+                    </div>
+                </div>`;
+            list.prepend(item);
+        }
+
+        function selectUser(username) {
+            selectedUser = username;
+
+            document.getElementById('current-chat-user').innerText = username;
+            var avatar = document.getElementById('header-avatar');
+            avatar.innerHTML = username.charAt(0).toUpperCase();
+            avatar.className = "rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-2";
+
+            document.getElementById('admin-chat-input').disabled = false;
+            document.getElementById('admin-send-btn').disabled = false;
+
+            document.querySelectorAll('.chat-user-item').forEach(el => el.classList.remove('active'));
+            var activeItem = document.getElementById('user-item-' + username);
+            if(activeItem) activeItem.classList.add('active');
+
+            fetch('/api/chat/history?user=' + username)
+                .then(res => res.json())
+                .then(msgs => {
+                    var chatBox = document.getElementById('admin-chat-content');
+                    chatBox.innerHTML = '';
+                    if(msgs.length === 0) {
+                         chatBox.innerHTML = '<div class="text-center text-muted mt-5">Chưa có tin nhắn nào.</div>';
+                    }
+                    msgs.forEach(msg => {
+                        renderMessage(msg.content, msg.adminSender);
+                    });
+                    scrollToBottom();
+                });
+        }
+
+        function connectAdmin() {
+            var socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+            stompClient.connect({}, function () {
+                stompClient.subscribe('/topic/admin', function (payload) {
+                    var msg = JSON.parse(payload.body);
+                    handleIncomingMessage(msg);
+                });
+            });
+        }
+
+        function handleIncomingMessage(msg) {
+            addUserToListUI(msg.sender);
+            if (selectedUser === msg.sender) {
+                renderMessage(msg.content, false);
+                scrollToBottom();
+            } else {
+                var item = document.getElementById('user-item-' + msg.sender);
+                if(item) {
+                    item.style.backgroundColor = "#fff3cd";
+                    // Move to top
+                    item.parentNode.prepend(item);
+                }
+            }
+        }
+
+        function sendAdminReply() {
+            var input = document.getElementById('admin-chat-input');
+            var content = input.value.trim();
+            if(content && selectedUser) {
+                var chatMessage = {
+                    sender: 'Admin',
+                    receiver: selectedUser,
+                    content: content,
+                    type: 'CHAT'
+                };
+                stompClient.send("/app/chat.reply", {}, JSON.stringify(chatMessage));
+                renderMessage(content, true);
+                input.value = '';
+                scrollToBottom();
+            }
+        }
+
+        function renderMessage(content, isMe) {
+            var chatBox = document.getElementById('admin-chat-content');
+            var div = document.createElement('div');
+            div.className = 'd-flex mb-3 ' + (isMe ? 'justify-content-end' : 'justify-content-start');
+            div.innerHTML = `
+                <div class="p-3 rounded-3 shadow-sm ${isMe ? 'bg-primary text-white' : 'bg-white text-dark'}"
+                     style="max-width: 75%; word-wrap: break-word;">
+                    ${content.replace(/\n/g, "<br>")}
+                </div>`;
+            chatBox.appendChild(div);
+        }
+
+        function scrollToBottom() {
+            var chatBox = document.getElementById('admin-chat-content');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function filterUsers() {
+            var filter = document.getElementById('search-user').value.toUpperCase();
+            var items = document.getElementsByClassName("chat-user-item");
+            for (var i = 0; i < items.length; i++) {
+                var name = items[i].querySelector(".user-name").innerText;
+                items[i].style.display = name.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            }
+        }
+
+        function handleAdminEnter(e) { if(e.key === 'Enter') sendAdminReply(); }
+
+        initPage();
+    </script>
+</div>
+</body>
+</html>

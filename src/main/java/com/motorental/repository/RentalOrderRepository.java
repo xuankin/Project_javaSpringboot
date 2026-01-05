@@ -13,27 +13,30 @@ import java.util.List;
 @Repository
 public interface RentalOrderRepository extends JpaRepository<RentalOrder, Long> {
 
-    // STT 9: My Orders - Lấy đơn hàng của user, mới nhất lên đầu
+    // --- CÁC METHOD BỊ THIẾU GÂY LỖI ---
+
+    // 1. Lấy danh sách đơn hàng của user, sắp xếp mới nhất trước
     List<RentalOrder> findByUserIdOrderByCreatedAtDesc(String userId);
 
-    // STT 14: Rental Order Management - Lấy tất cả đơn cho Admin
+    // 2. Lấy tất cả đơn hàng (có hỗ trợ phân trang/sắp xếp trong tên hàm)
+    // Lưu ý: Spring Data JPA sẽ tự parse "OrderByCreatedAtDesc"
     Page<RentalOrder> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    // STT 14: Tìm kiếm đơn hàng (Mã đơn, User, SĐT)
+    // ------------------------------------
+
+    // Tìm kiếm đơn hàng (Fix lỗi cú pháp LIKE %:keyword%)
     @Query("SELECT o FROM RentalOrder o WHERE " +
             "lower(o.orderCode) LIKE lower(concat('%', :keyword, '%')) OR " +
             "lower(o.user.username) LIKE lower(concat('%', :keyword, '%')) OR " +
-            "o.user.phoneNumber LIKE %:keyword%")
+            "o.user.phoneNumber LIKE concat('%', :keyword, '%')")
     Page<RentalOrder> searchOrders(@Param("keyword") String keyword, Pageable pageable);
 
-    // STT 12: Admin Dashboard - Thống kê số đơn theo trạng thái (Pending, Completed...)
+    // Các method phục vụ Dashboard
     long countByStatus(RentalOrder.OrderStatus status);
 
-    // STT 12: Admin Dashboard - Tổng doanh thu (Chỉ tính đơn Completed)
     @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM RentalOrder o WHERE o.status = 'COMPLETED'")
     Double getTotalRevenue();
 
-    // STT 12: Admin Dashboard - Doanh thu theo tháng
     @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM RentalOrder o WHERE o.status = 'COMPLETED' " +
             "AND YEAR(o.createdAt) = :year AND MONTH(o.createdAt) = :month")
     Double getMonthlyRevenue(@Param("year") int year, @Param("month") int month);

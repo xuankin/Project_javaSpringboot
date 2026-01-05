@@ -75,6 +75,13 @@
                             <i class="fas fa-comments me-2"></i> Phản hồi (Feedback)
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           th:classappend="${requestURI != null && requestURI.contains('/admin/chat') ? 'active' : ''}"
+                           th:href="@{/admin/chat}">
+                            <i class="fas fa-comments me-2"></i> Hỗ trợ khách hàng
+                        </a>
+                    </li>
                 </ul>
             </div>
         </nav>

@@ -53,7 +53,8 @@ public class SecurityConfig {
                                 "/login",
                                 "/vehicles",
                                 "/vehicles/**",
-                                "/css/**", "/js/**", "/images/**", "/uploads/**", "/webjars/**"
+                                "/css/**", "/js/**", "/images/**", "/uploads/**", "/webjars/**",
+                                "/ws/**","/chat" //
                         ).permitAll()
 
                         // 2. ADMIN: Chỉ Admin mới vào được trang quản trị

@@ -1,35 +1,63 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{fragments/layout}"> <head>
+      layout:decorate="~{fragments/layout}">
+<head>
     <title>Hệ thống chi nhánh</title>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css' rel='stylesheet' />
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css" type="text/css">
 </head>
 <body>
 
 <div layout:fragment="content" class="container mt-4">
-    <link href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css' rel='stylesheet' />
-    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css" type="text/css">
-
     <style>
-        .branch-card { cursor: pointer; transition: all 0.3s; border-left: 5px solid transparent; }
-        .branch-card:hover, .branch-card.active { background-color: #f8f9fa; border-left: 5px solid #0d6efd; }
-        #map { height: 600px; width: 100%; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .branch-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 5px solid transparent;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #fff;
+        }
+        .branch-card:hover, .branch-card.active {
+            background-color: #f0f8ff;
+            border-left: 5px solid #0d6efd;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
         .mapboxgl-ctrl-geocoder { min-width: 100%; }
+        .branch-list-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        /* Tùy chỉnh thanh cuộn */
+        .branch-list-container::-webkit-scrollbar { width: 6px; }
+        .branch-list-container::-webkit-scrollbar-thumb { background-color: #dee2e6; border-radius: 4px; }
     </style>
 
     <h2 class="mb-4 text-center fw-bold text-primary">Hệ Thống Chi Nhánh Cửa Hàng</h2>
 
-    <div class="row">
-        <div class="col-md-4 mb-3">
-            <div class="list-group shadow-sm" id="branchList">
+    <div class="row g-4">
+        <div class="col-lg-4 col-md-5">
+            <div class="branch-list-container">
+                <div class="list-group" id="branchList">
+                </div>
             </div>
-            <div class="alert alert-info mt-3 shadow-sm">
-                <small><i class="fas fa-info-circle"></i> Chọn một chi nhánh để xem đường đi.</small>
+            <div class="alert alert-info mt-3 shadow-sm border-0 d-flex align-items-center">
+                <i class="fas fa-info-circle text-primary me-2 fs-4"></i>
+                <small>Chọn "Chỉ đường" để tìm đường từ vị trí của bạn.</small>
             </div>
         </div>
 
-        <div class="col-md-8">
-            <div id="map" class="shadow"></div>
+        <div class="col-lg-8 col-md-7">
+            <div id="map" class="shadow-lg border bg-light"></div>
         </div>
     </div>
 </div>
@@ -39,46 +67,41 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js"></script>
 
     <script th:inline="javascript">
-        // 1. Lấy token từ Controller
+        /*<![CDATA[*/
         const token = [[${mapboxToken}]];
 
-        // 2. Kiểm tra Token
-        if (!token || token.includes("YOUR_MAPBOX") || token.length < 10) {
-            console.error("Lỗi: Mapbox Token chưa hợp lệ.");
-            alert("Vui lòng cấu hình Mapbox Token trong application.properties");
+        // Dữ liệu mẫu (Có thể thay bằng API lấy từ server)
+        const branches = [
+            { id: 1, name: "Trụ sở Quận 1", address: "Phố đi bộ Nguyễn Huệ, Q.1, TP.HCM", phone: "0901.234.567", coords: [106.703756, 10.774409] },
+            { id: 2, name: "CN Thủ Đức", address: "Võ Văn Ngân, Thủ Đức, TP.HCM", phone: "0909.888.999", coords: [106.772054, 10.850632] },
+            { id: 3, name: "CN Bình Thạnh", address: "Landmark 81, Bình Thạnh, TP.HCM", phone: "0912.333.444", coords: [106.721835, 10.794715] }
+        ];
+
+        if (!token || token.length < 10) {
+            console.error("Lỗi: Mapbox Token chưa hợp lệ hoặc chưa được cấu hình.");
         } else {
             mapboxgl.accessToken = token;
             initMap();
         }
 
         function initMap() {
-            // Dữ liệu mẫu
-            const branches = [
-                { id: 1, name: "Trụ sở Quận 1", address: "Phố đi bộ Nguyễn Huệ, Q.1, TP.HCM", phone: "0901.234.567", coords: [106.703756, 10.774409] },
-                { id: 2, name: "CN Thủ Đức", address: "Võ Văn Ngân, Thủ Đức, TP.HCM", phone: "0909.888.999", coords: [106.772054, 10.850632] },
-                { id: 3, name: "CN Bình Thạnh", address: "Landmark 81, Bình Thạnh, TP.HCM", phone: "0912.333.444", coords: [106.721835, 10.794715] }
-            ];
-
-            // Khởi tạo Map
             const map = new mapboxgl.Map({
                 container: 'map',
                 style: 'mapbox://styles/mapbox/streets-v12',
-                center: [106.703756, 10.774409], // Mặc định center ở trụ sở chính
-                zoom: 11
+                center: [106.703756, 10.774409],
+                zoom: 12
             });
 
-            // Thêm nút zoom/rotate
-            map.addControl(new mapboxgl.NavigationControl());
+            map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
-            // Thêm nút định vị vị trí hiện tại của người dùng (Icon GPS góc phải trên)
             const geolocateControl = new mapboxgl.GeolocateControl({
                 positionOptions: { enableHighAccuracy: true },
                 trackUserLocation: true,
                 showUserHeading: true
             });
-            map.addControl(geolocateControl);
+            map.addControl(geolocateControl, 'top-right');
 
-            // Thêm Widget Chỉ đường (Mapbox Directions)
+            // Widget Chỉ đường
             const directions = new MapboxDirections({
                 accessToken: mapboxgl.accessToken,
                 unit: 'metric',
@@ -86,35 +109,37 @@
                 language: 'vi',
                 controls: { inputs: true, instructions: true, profileSwitcher: true },
                 placeholderOrigin: 'Vị trí của bạn',
-                placeholderDestination: 'Chọn chi nhánh...'
+                placeholderDestination: 'Điểm đến...'
             });
             map.addControl(directions, 'top-left');
 
-            // Render danh sách & Marker
+            // Render danh sách & Markers
             const branchListEl = document.getElementById('branchList');
 
             branches.forEach(branch => {
-                // Tạo thẻ bên trái
+                // Render List Item
                 const item = document.createElement('div');
-                item.className = 'list-group-item list-group-item-action branch-card p-3';
-                // Thêm ID để dễ xử lý highlight
+                item.className = 'list-group-item list-group-item-action branch-card p-3 shadow-sm border mb-2';
                 item.id = `branch-item-${branch.id}`;
 
                 item.innerHTML = `
-                    <div class="d-flex justify-content-between">
-                        <h6 class="mb-1 fw-bold">${branch.name}</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-1 fw-bold text-dark">${branch.name}</h6>
+                        <span class="badge bg-secondary rounded-pill">CN ${branch.id}</span>
                     </div>
-                    <p class="mb-1 small text-muted"><i class="fas fa-map-marker-alt text-danger"></i> ${branch.address}</p>
-                    <small class="text-primary"><i class="fas fa-phone"></i> ${branch.phone}</small>
-                    <button class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="selectBranch(${branch.id})">
-                        <i class="fas fa-location-arrow"></i> Chỉ đường từ vị trí của tôi
-                    </button>
+                    <p class="mb-2 small text-muted"><i class="fas fa-map-marker-alt text-danger me-1"></i>${branch.address}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-primary fw-bold"><i class="fas fa-phone me-1"></i>${branch.phone}</small>
+                        <button class="btn btn-sm btn-outline-primary direct-btn" onclick="selectBranch(${branch.id})">
+                            <i class="fas fa-location-arrow me-1"></i> Chỉ đường
+                        </button>
+                    </div>
                 `;
                 branchListEl.appendChild(item);
 
-                // Tạo Marker trên bản đồ
+                // Render Map Marker
                 const popup = new mapboxgl.Popup({ offset: 25 })
-                    .setHTML(`<strong>${branch.name}</strong><br>${branch.address}`);
+                    .setHTML(`<div class="p-2"><strong>${branch.name}</strong><br><small>${branch.address}</small></div>`);
 
                 new mapboxgl.Marker({ color: '#E63946' })
                     .setLngLat(branch.coords)
@@ -122,49 +147,61 @@
                     .addTo(map);
             });
 
-            // --- HÀM XỬ LÝ CHỈNH SỬA: Lấy vị trí user -> Chỉ đường tới chi nhánh ---
+            // --- HÀM XỬ LÝ CHÍNH: CHỈ ĐƯỜNG ---
             window.selectBranch = function(branchId) {
                 const selected = branches.find(b => b.id === branchId);
+                if (!selected) return;
 
-                if (selected) {
-                    // 1. Highlight giao diện
-                    document.querySelectorAll('.branch-card').forEach(el => el.classList.remove('active'));
-                    const activeItem = document.getElementById(`branch-item-${branchId}`);
-                    if(activeItem) activeItem.classList.add('active');
+                // 1. Highlight giao diện
+                document.querySelectorAll('.branch-card').forEach(el => el.classList.remove('active'));
+                const activeItem = document.getElementById(`branch-item-${branchId}`);
+                if(activeItem) activeItem.classList.add('active');
 
-                    // 2. Thiết lập điểm đến (Destination) là chi nhánh
-                    directions.setDestination(selected.coords);
+                // 2. Feedback UI (Đổi nút thành Loading)
+                const btn = activeItem.querySelector('.direct-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang định vị...';
+                btn.disabled = true;
 
-                    // 3. Lấy vị trí người dùng làm điểm bắt đầu (Origin)
-                    if (navigator.geolocation) {
-                        // Hiển thị thông báo nhỏ hoặc log
-                        console.log("Đang lấy vị trí của bạn...");
+                // 3. Set điểm đến trước
+                directions.setDestination(selected.coords);
 
-                        navigator.geolocation.getCurrentPosition(
-                            (position) => {
-                                const userLng = position.coords.longitude;
-                                const userLat = position.coords.latitude;
+                // 4. Lấy vị trí người dùng
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const userLng = position.coords.longitude;
+                            const userLat = position.coords.latitude;
 
-                                // Set Origin là vị trí người dùng
-                                directions.setOrigin([userLng, userLat]);
+                            // Set Origin = Vị trí người dùng
+                            directions.setOrigin([userLng, userLat]);
 
-                                // Mapbox Direction sẽ tự động vẽ đường và căn chỉnh camera
-                            },
-                            (error) => {
-                                console.error("Lỗi Geolocation:", error);
-                                // Nếu không lấy được vị trí (do từ chối quyền hoặc lỗi), chỉ bay tới chi nhánh
-                                alert("Không thể lấy vị trí của bạn. Vui lòng bật định vị trình duyệt.");
-                                map.flyTo({ center: selected.coords, zoom: 14 });
-                            },
-                            { enableHighAccuracy: true }
-                        );
-                    } else {
-                        alert("Trình duyệt không hỗ trợ định vị.");
-                        map.flyTo({ center: selected.coords, zoom: 14 });
-                    }
+                            // Reset nút
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        },
+                        (error) => {
+                            console.error("Lỗi Geolocation:", error);
+                            let msg = "Không thể lấy vị trí của bạn.";
+                            if (error.code === 1) msg = "Bạn đã từ chối quyền truy cập vị trí.";
+                            alert(msg + " Bản đồ sẽ chỉ hiển thị vị trí cửa hàng.");
+
+                            // Fallback: Chỉ bay đến cửa hàng
+                            map.flyTo({ center: selected.coords, zoom: 14 });
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        },
+                        { enableHighAccuracy: true, timeout: 10000 }
+                    );
+                } else {
+                    alert("Trình duyệt của bạn không hỗ trợ định vị.");
+                    map.flyTo({ center: selected.coords, zoom: 14 });
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
                 }
             };
         }
+        /*]]>*/
     </script>
 </th:block>
 
