@@ -33,9 +33,17 @@ public class VehicleService {
     private final FeedbackRepository feedbackRepository;
     private final ModelMapper modelMapper;
 
-    // --- CÁC HÀM SEARCH/GET GIỮ NGUYÊN NHƯ CŨ ---
-    public Page<VehicleDetailDto> searchVehiclesDetail(String keyword, Double maxPrice, Pageable pageable) {
-        return vehicleRepository.searchVehiclesDetail(keyword, maxPrice, pageable).map(this::mapToDetailDto);
+    // --- PHẦN KHÁCH HÀNG (SEARCH & VIEW) ---
+
+    // 1. [MỚI] Lấy danh sách hãng xe
+    public List<String> getAllBrands() {
+        return vehicleRepository.findAllBrands();
+    }
+
+    // 2. [CẬP NHẬT] Tìm kiếm xe với bộ lọc đầy đủ
+    public Page<VehicleDetailDto> searchVehiclesDetail(String keyword, String brand, Double maxPrice, Pageable pageable) {
+        return vehicleRepository.searchVehiclesDetail(keyword, brand, maxPrice, pageable)
+                .map(this::mapToDetailDto);
     }
 
     public Page<VehicleDto> searchVehicles(String keyword, String statusStr, Pageable pageable) {
@@ -60,10 +68,14 @@ public class VehicleService {
         return availabilityRepository.findFutureBookings(vehicleId, List.of(VehicleAvailability.AvailabilityStatus.BOOKED, VehicleAvailability.AvailabilityStatus.COMPLETED));
     }
 
-    // --- ADMIN: CREATE & UPDATE ---
+    // --- ADMIN: CREATE & UPDATE (GIỮ NGUYÊN) ---
 
     @Transactional
     public void createVehicle(VehicleDto dto, List<MultipartFile> imageFiles) throws IOException {
+        if (vehicleRepository.existsByLicensePlateAndIdNot(dto.getLicensePlate(), -1L)) {
+            throw new RuntimeException("Biển số xe " + dto.getLicensePlate() + " đã tồn tại!");
+        }
+
         Vehicle vehicle = modelMapper.map(dto, Vehicle.class);
         Vehicle saved = vehicleRepository.save(vehicle);
         if (hasNewImages(imageFiles)) {
@@ -76,7 +88,6 @@ public class VehicleService {
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy xe id: " + id));
 
-        // Check biển số
         if (dto.getLicensePlate() != null && !dto.getLicensePlate().equals(vehicle.getLicensePlate())) {
             if (vehicleRepository.existsByLicensePlateAndIdNot(dto.getLicensePlate(), id)) {
                 throw new RuntimeException("Biển số xe đã tồn tại!");
@@ -84,7 +95,6 @@ public class VehicleService {
             vehicle.setLicensePlate(dto.getLicensePlate());
         }
 
-        // Update thông tin cơ bản
         vehicle.setName(dto.getName());
         vehicle.setDescription(dto.getDescription());
         vehicle.setPricePerDay(dto.getPricePerDay());
@@ -97,21 +107,13 @@ public class VehicleService {
             vehicle.setStatus(Vehicle.VehicleStatus.valueOf(dto.getStatus()));
         }
 
-        // Logic Update Ảnh an toàn
         if (hasNewImages(imageFiles)) {
-            // 1. Xóa file vật lý (nhưng ko xóa list ngay để tránh lỗi ConcurrentModification nếu có)
             List<String> oldUrls = vehicle.getImages().stream()
                     .map(VehicleImage::getImageUrl).collect(Collectors.toList());
-
-            // 2. Clear list (Hibernate sẽ tự lo việc delete record trong DB nhờ orphanRemoval=true)
             vehicle.getImages().clear();
-
-            // 3. Xóa file cũ sau khi đã clear list
             for (String url : oldUrls) {
                 deleteFileByUrl(url);
             }
-
-            // 4. Lưu ảnh mới
             saveImages(vehicle, imageFiles, true);
         }
 
@@ -132,25 +134,20 @@ public class VehicleService {
         boolean primaryAssigned = false;
         for (MultipartFile file : files) {
             if (file == null || file.isEmpty()) continue;
-
-            // Clean tên file để tránh lỗi ký tự đặc biệt
             String original = file.getOriginalFilename();
             String safeName = (original == null) ? "img" : original.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
             String fileName = UUID.randomUUID() + "_" + safeName;
-
             Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
 
             VehicleImage image = new VehicleImage();
             image.setVehicle(vehicle);
             image.setImageUrl(URL_PREFIX + fileName);
-
             if (firstPrimary && !primaryAssigned) {
                 image.setIsPrimary(true);
                 primaryAssigned = true;
             } else {
                 image.setIsPrimary(false);
             }
-
             vehicle.getImages().add(image);
         }
     }
@@ -162,8 +159,7 @@ public class VehicleService {
             Path filePath = Paths.get(UPLOAD_DIR).resolve(fileName);
             Files.deleteIfExists(filePath);
         } catch (Exception e) {
-            System.err.println("Không thể xóa file ảnh cũ (có thể đang mở): " + e.getMessage());
-            // Không ném exception để transaction vẫn commit thành công
+            System.err.println("Không thể xóa file ảnh cũ: " + e.getMessage());
         }
     }
 
@@ -171,7 +167,6 @@ public class VehicleService {
         return files != null && !files.isEmpty() && files.stream().anyMatch(f -> f != null && !f.isEmpty());
     }
 
-    // Mapping DTO
     private VehicleDto mapToDto(Vehicle vehicle) {
         VehicleDto dto = modelMapper.map(vehicle, VehicleDto.class);
         dto.setPrimaryImageUrl(getPrimaryImageUrl(vehicle));

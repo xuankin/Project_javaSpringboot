@@ -42,8 +42,8 @@ public class UserService {
         user.setPhoneNumber(registrationDto.getPhoneNumber());
         user.setPasswordHash(passwordEncoder.encode(registrationDto.getPassword()));
         user.setIsActive(true);
+        user.setIsScammed(false); // Mặc định không phải scam
 
-        // Mặc định role USER
         Role userRole = roleRepository.findByName("ROLE_USER")
                 .orElseThrow(() -> new RuntimeException("Lỗi hệ thống: Không tìm thấy Role mặc định."));
         user.setRoles(new HashSet<>(Collections.singletonList(userRole)));
@@ -57,13 +57,11 @@ public class UserService {
         return mapToDto(user);
     }
 
-    // --- SỬA ĐỔI: Thêm phương thức tìm theo Username ---
     public UserDto findByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với username: " + username));
         return mapToDto(user);
     }
-    // ---------------------------------------------------
 
     public UserDto getUserProfile(String username) {
         User user = userRepository.findByUsername(username)
@@ -81,6 +79,20 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // --- MỚI: Logic bật tắt cờ Scam ---
+    @Transactional
+    public void toggleScamStatus(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (user.getIsScammed() == null) {
+            user.setIsScammed(true);
+        } else {
+            user.setIsScammed(!user.getIsScammed());
+        }
+        userRepository.save(user);
+    }
+
     private UserDto mapToDto(User user) {
         return UserDto.builder()
                 .id(user.getId() != null ? user.getId().toString() : null)
@@ -89,11 +101,13 @@ public class UserService {
                 .fullName(user.getFullName())
                 .phoneNumber(user.getPhoneNumber())
                 .isActive(user.getIsActive())
+                .isScammed(user.getIsScammed() != null ? user.getIsScammed() : false) // Map thêm trường này
                 .roles(user.getRoles().stream()
                         .map(Role::getName)
                         .collect(Collectors.toSet()))
                 .build();
     }
+
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::mapToDto)
@@ -105,9 +119,6 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("Người dùng không tồn tại");
         }
-        // Có thể thêm logic kiểm tra: Không cho phép xóa chính mình hoặc xóa Admin khác
         userRepository.deleteById(id);
     }
-
-
 }

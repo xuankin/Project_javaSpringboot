@@ -31,12 +31,11 @@
                         <th>Họ tên</th>
                         <th>Email</th>
                         <th>Số điện thoại</th>
-                        <th>Quyền hạn</th>
-                        <th>Thao tác</th>
+                        <th>Trạng thái & Quyền</th> <th>Thao tác</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="user : ${users}">
+                    <tr th:each="user : ${users}" th:classappend="${user.isScammed} ? 'table-warning' : ''">
                         <td th:text="${#strings.length(user.id) > 8 ? #strings.substring(user.id,0,8) + '...' : user.id}"
                             th:title="${user.id}"></td>
 
@@ -46,15 +45,33 @@
                         <td th:text="${user.phoneNumber}"></td>
 
                         <td>
-                            <span class="badge"
-                                  th:each="role : ${user.roles}"
-                                  th:classappend="${role == 'ADMIN' || role == 'ROLE_ADMIN' ? 'bg-danger' : 'bg-primary'}"
-                                  th:text="${role} + ' '"
-                                  style="margin-right: 2px;">
+                            <div class="mb-1">
+                                <span class="badge"
+                                      th:each="role : ${user.roles}"
+                                      th:classappend="${role == 'ADMIN' || role == 'ROLE_ADMIN' ? 'bg-danger' : 'bg-primary'}"
+                                      th:text="${role} + ' '"
+                                      style="margin-right: 2px;">
+                                </span>
+                            </div>
+
+                            <span th:if="${user.isScammed}" class="badge bg-danger">
+                                <i class="fas fa-exclamation-triangle"></i> SCAM / CẢNH BÁO
+                            </span>
+                            <span th:unless="${user.isScammed}" class="badge bg-success">
+                                <i class="fas fa-check-circle"></i> Uy tín
                             </span>
                         </td>
 
                         <td>
+                            <form th:action="@{/admin/users/toggle-scam/{id}(id=${user.id})}" method="post" class="d-inline">
+                                <button type="submit"
+                                        class="btn btn-sm me-1"
+                                        th:classappend="${user.isScammed} ? 'btn-outline-success' : 'btn-outline-warning'"
+                                        th:title="${user.isScammed} ? 'Gỡ cờ Scam' : 'Đánh cờ Scam'">
+                                    <i th:class="${user.isScammed} ? 'fas fa-shield-alt' : 'fas fa-flag'"></i>
+                                </button>
+                            </form>
+
                             <form th:action="@{/admin/users/delete/{id}(id=${user.id})}" method="post" class="d-inline"
                                   onsubmit="return confirm('Cảnh báo: Hành động này sẽ xóa vĩnh viễn người dùng và các dữ liệu liên quan. Bạn có chắc chắn không?');">
                                 <button class="btn btn-sm btn-outline-danger" title="Xóa người dùng">

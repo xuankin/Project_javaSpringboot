@@ -25,27 +25,36 @@ public class VehicleController {
     private final VehicleService vehicleService;
     private final FeedbackService feedbackService;
 
-    // Trang danh sách xe
+    // Trang danh sách xe (Đã nâng cấp)
     @GetMapping
     public String listVehicles(
             @RequestParam(required = false, defaultValue = "") String keyword,
+            @RequestParam(required = false) String brand,
             @RequestParam(required = false) Double maxPrice,
             @PageableDefault(size = 9) Pageable pageable,
             Model model) {
 
-        // [FIX] Gọi hàm searchVehiclesDetail thay vì searchVehicles
-        Page<VehicleDetailDto> vehiclePage = vehicleService.searchVehiclesDetail(keyword, maxPrice, pageable);
+        // 1. Lấy danh sách xe đã lọc
+        Page<VehicleDetailDto> vehiclePage = vehicleService.searchVehiclesDetail(keyword, brand, maxPrice, pageable);
+
+        // 2. Lấy danh sách hãng xe để hiển thị ở filter
+        List<String> brands = vehicleService.getAllBrands();
 
         model.addAttribute("vehicles", vehiclePage.getContent());
         model.addAttribute("currentPage", vehiclePage.getNumber());
         model.addAttribute("totalPages", vehiclePage.getTotalPages());
+        model.addAttribute("totalItems", vehiclePage.getTotalElements());
+
+        // 3. Truyền lại các giá trị filter để giữ trạng thái form
         model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedBrand", brand);
         model.addAttribute("maxPrice", maxPrice);
+        model.addAttribute("brands", brands);
 
         return "vehicles/list";
     }
 
-    // Trang chi tiết xe
+    // Trang chi tiết xe (Giữ nguyên)
     @GetMapping("/detail/{id}")
     public String vehicleDetail(@PathVariable Long id, Model model) {
         VehicleDetailDto vehicle = vehicleService.getVehicleDetail(id);

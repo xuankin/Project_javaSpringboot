@@ -5,6 +5,7 @@ import com.motorental.entity.Feedback;
 import com.motorental.entity.User;
 import com.motorental.entity.Vehicle;
 import com.motorental.repository.FeedbackRepository;
+import com.motorental.repository.RentalOrderRepository; // Đã thêm
 import com.motorental.repository.UserRepository;
 import com.motorental.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,9 @@ import java.util.stream.Collectors;
 public class FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
-    // Đã xóa RentalOrderRepository vì không cần check đơn hàng nữa
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
+    private final RentalOrderRepository rentalOrderRepository; // Cần thiết để check đơn hàng
 
     public List<FeedbackDto> getFeedbacksByVehicleId(Long vehicleId) {
         return feedbackRepository.findByVehicleIdOrderByCreatedAtDesc(vehicleId, Pageable.unpaged())
@@ -46,10 +47,22 @@ public class FeedbackService {
         Vehicle vehicle = vehicleRepository.findById(dto.getVehicleId())
                 .orElseThrow(() -> new RuntimeException("Xe không tồn tại"));
 
-        // 2. (Tùy chọn) Check xem User này đã đánh giá xe này chưa nếu muốn chặn spam
-        // if (feedbackRepository.existsByUserAndVehicle(user, vehicle)) { ... }
+        // 2. [QUAN TRỌNG] Kiểm tra xem User đã thuê xe này và hoàn thành chuyến đi chưa
+        boolean hasRented = rentalOrderRepository.hasUserRentedVehicle(userId, dto.getVehicleId());
 
-        // 3. Tạo Feedback mới mà KHÔNG cần check Order
+        if (!hasRented) {
+            throw new RuntimeException("Bạn cần hoàn thành ít nhất một chuyến đi với xe này để có thể đánh giá.");
+        }
+
+        // 3. (Tùy chọn) Chặn spam: Nếu user đã đánh giá rồi thì không cho đánh giá thêm (hoặc cho phép sửa)
+        // Hiện tại tạm thời cho phép đánh giá nhiều lần nếu thuê nhiều lần (hoặc comment logic này nếu muốn)
+        /*
+        if (feedbackRepository.existsByUserIdAndVehicleId(userId, dto.getVehicleId())) {
+             throw new RuntimeException("Bạn đã đánh giá xe này rồi.");
+        }
+        */
+
+        // 4. Tạo Feedback mới
         Feedback feedback = new Feedback();
         feedback.setUser(user);
         feedback.setVehicle(vehicle);

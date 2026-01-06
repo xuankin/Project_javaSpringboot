@@ -18,5 +18,9 @@ public class UserDto {
     private String email;
     private String phoneNumber;
     private Boolean isActive;
-    private Set<String> roles; // Chỉ trả về tên role (ví dụ: ["ROLE_USER"])
+
+    // MỚI: Thêm trường này
+    private Boolean isScammed;
+
+    private Set<String> roles;
 }

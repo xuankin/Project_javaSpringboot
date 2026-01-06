@@ -1,5 +1,8 @@
 package com.motorental.dto.vehicle;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,10 +16,19 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class VehicleDto {
     private Long id;
+
+    @NotBlank(message = "Tên xe không được để trống")
     private String name;
+
+    @NotBlank(message = "Biển số xe không được để trống")
     private String licensePlate;
+
     private String description;
+
+    @NotNull(message = "Giá thuê không được để trống")
+    @Min(value = 0, message = "Giá thuê phải lớn hơn 0")
     private BigDecimal pricePerDay;
+
     private String status;          // Trả về chuỗi enum
     private String brand;
     private String model;

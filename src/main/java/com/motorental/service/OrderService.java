@@ -22,6 +22,7 @@ public class OrderService {
 
     private final RentalOrderRepository orderRepository;
     private final VehicleAvailabilityRepository availabilityRepository;
+    private final VehicleRepository vehicleRepository; // [LƯU Ý] Đảm bảo đã inject Repository này (thường Lombok làm hộ rồi)
     private final CartService cartService;
     private final EmailService emailService;
     private final ModelMapper modelMapper;
@@ -29,6 +30,11 @@ public class OrderService {
     @Transactional(rollbackFor = Exception.class)
     public OrderDto createOrderFromCart(String userId, CreateOrderDto createOrderDto) {
         RentalCart cart = cartService.getCartEntity(userId);
+
+        if (Boolean.TRUE.equals(cart.getUser().getIsScammed())) {
+            throw new RuntimeException("Tài khoản của bạn đang bị giới hạn do vi phạm chính sách (Scam). Vui lòng liên hệ quản trị viên.");
+        }
+
         if (cart.getItems().isEmpty()) {
             throw new RuntimeException("Giỏ hàng trống!");
         }
@@ -38,8 +44,15 @@ public class OrderService {
                 VehicleAvailability.AvailabilityStatus.COMPLETED
         );
 
-        // 1. Kiểm tra tính khả dụng
+        // 1. Kiểm tra tính khả dụng (CÓ SỬ DỤNG LOCKING)
         for (RentalCartItem item : cart.getItems()) {
+
+            // --- [MỚI] QUAN TRỌNG: Lock xe lại trước khi kiểm tra ---
+            // Dòng này sẽ bắt các Request khác phải chờ nếu đang cố truy cập cùng 1 xe
+            vehicleRepository.findByIdWithLock(item.getVehicle().getId())
+                    .orElseThrow(() -> new RuntimeException("Xe không tồn tại hoặc đang bận xử lý!"));
+            // --------------------------------------------------------
+
             List<VehicleAvailability> conflicts = availabilityRepository.findConflictingAvailabilities(
                     item.getVehicle().getId(),
                     item.getStartDate(),
@@ -66,7 +79,7 @@ public class OrderService {
         for (RentalCartItem item : cart.getItems()) {
             OrderDetail detail = new OrderDetail();
             detail.setRentalOrder(order);
-            detail.setVehicle(item.getVehicle());
+            detail.setVehicle(item.getVehicle()); // Lưu ý: item.getVehicle() ở đây vẫn dùng được vì transaction chưa kết thúc
             detail.setStartDate(item.getStartDate());
             detail.setEndDate(item.getEndDate());
             detail.setPricePerDay(item.getPricePerDay());
@@ -93,7 +106,7 @@ public class OrderService {
         // 4. Xóa giỏ hàng
         cartService.clearCart(userId);
 
-        // 5. Gửi email (Sử dụng try-catch để không làm lỗi đơn hàng nếu mail lỗi)
+        // 5. Gửi email
         try {
             emailService.sendOrderConfirmationEmail(cart.getUser().getEmail(), savedOrder);
         } catch (Exception e) {
@@ -102,6 +115,8 @@ public class OrderService {
 
         return mapToDto(savedOrder);
     }
+
+    // --- CÁC HÀM DƯỚI GIỮ NGUYÊN KHÔNG ĐỔI ---
 
     public List<OrderDto> getOrdersByUserId(String userId) {
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
@@ -154,12 +169,10 @@ public class OrderService {
         order.setStatus(newStatus);
         orderRepository.save(order);
 
-        // QUAN TRỌNG: Try-catch việc gửi mail để tránh lỗi Authentication Failed làm rollback transaction
         try {
             emailService.sendOrderStatusUpdateEmail(order.getUser().getEmail(), order, order.getStatus().name(), statusStr);
         } catch (Exception e) {
             System.err.println("Cảnh báo: Không thể gửi email cập nhật trạng thái. Lỗi: " + e.getMessage());
-            // Không throw exception ở đây để transaction vẫn thành công
         }
     }
 

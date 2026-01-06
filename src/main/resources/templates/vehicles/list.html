@@ -1,47 +1,186 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}"></head>
-<body>
+<body class="bg-light">
 <nav th:replace="~{fragments/header :: header}"></nav>
 
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2>Danh sách xe máy</h2>
-        </div>
-        <div class="col-md-4">
-            <form action="/vehicles" method="get" class="d-flex">
-                <input class="form-control me-2" type="search" name="search" th:value="${search}" placeholder="Tìm xe, hãng...">
-                <button class="btn btn-outline-primary" type="submit">Tìm</button>
-            </form>
-        </div>
+<div class="bg-primary text-white py-4 mb-4">
+    <div class="container">
+        <h2 class="fw-bold mb-0">Thuê Xe Máy</h2>
+        <p class="mb-0 text-white-50">Tìm chiếc xe ưng ý cho hành trình của bạn</p>
     </div>
+</div>
 
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        <div class="col" th:each="vehicle : ${vehicles}">
-            <div class="card h-100 shadow-sm border-0">
-                <img th:src="${vehicle.primaryImageUrl}" class="card-img-top" style="height: 220px; object-fit: cover;" alt="Xe">
-                <div class="card-body">
-                    <h5 class="card-title" th:text="${vehicle.name}">Xe</h5>
-                    <p class="card-text text-muted" th:text="${vehicle.brand} + ' • ' + ${vehicle.year}"></p>
-                    <h5 class="text-danger fw-bold" th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'COMMA', 0, 'POINT')} + ' đ/ngày'"></h5>
-
-                    <div class="d-grid gap-2 mt-3">
-                        <a th:href="@{/vehicles/detail/{id}(id=${vehicle.id})}" class="btn btn-outline-dark">Xem chi tiết</a>
-                    </div>
+<div class="container pb-5">
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 20px; z-index: 100;">
+                <div class="card-header bg-white border-bottom-0 pt-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-filter me-2 text-primary"></i>Bộ Lọc</h5>
                 </div>
-                <div class="card-footer bg-white border-top-0 d-flex justify-content-between">
-                    <small class="text-muted"><i class="fas fa-star text-warning"></i> <span th:text="${vehicle.averageRating}">5.0</span></small>
-                    <small class="text-success" th:if="${vehicle.status == 'AVAILABLE'}">Sẵn sàng</small>
-                    <small class="text-danger" th:if="${vehicle.status != 'AVAILABLE'}">Hết xe</small>
+                <div class="card-body">
+                    <form action="/vehicles" method="get">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Tên xe / Từ khóa</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0" name="keyword" th:value="${keyword}" placeholder="Ví dụ: Vision, AirBlade...">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Hãng sản xuất</label>
+                            <select class="form-select" name="brand">
+                                <option value="">Tất cả các hãng</option>
+                                <option th:each="b : ${brands}"
+                                        th:value="${b}"
+                                        th:text="${b}"
+                                        th:selected="${b == selectedBrand}"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Giá thuê tối đa (VNĐ)</label>
+                            <div class="range-value mb-2 fw-bold text-primary" id="priceValue">
+                                <span th:text="${maxPrice != null ? #numbers.formatDecimal(maxPrice, 0, 'COMMA', 0, 'POINT') : '500.000'}"></span> đ
+                            </div>
+                            <input type="range" class="form-range" name="maxPrice" id="priceRange"
+                                   min="0" max="1000000" step="50000"
+                                   th:value="${maxPrice != null ? maxPrice : 1000000}"
+                                   oninput="document.getElementById('priceValue').innerText = new Intl.NumberFormat('vi-VN').format(this.value) + ' đ'">
+                            <div class="d-flex justify-content-between text-muted small">
+                                <span>0đ</span>
+                                <span>1tr+</span>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary fw-bold" type="submit">Áp dụng bộ lọc</button>
+                            <a href="/vehicles" class="btn btn-outline-secondary btn-sm">Xóa bộ lọc</a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div th:if="${vehicles.empty}" class="text-center mt-5">
-        <p class="text-muted fs-4">Không tìm thấy xe nào phù hợp.</p>
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <span class="text-muted">Tìm thấy <strong class="text-dark" th:text="${totalItems}">0</strong> xe phù hợp</span>
+            </div>
+
+            <div th:if="${#lists.isEmpty(vehicles)}" class="text-center py-5 bg-white rounded shadow-sm">
+                <div class="mb-3 text-muted" style="font-size: 3rem;"><i class="fas fa-search"></i></div>
+                <h5 class="text-muted">Không tìm thấy xe nào phù hợp</h5>
+                <p class="mb-0">Hãy thử thay đổi điều kiện tìm kiếm của bạn.</p>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                <div class="col" th:each="vehicle : ${vehicles}">
+                    <div class="card h-100 border-0 shadow-sm card-hover">
+                        <div class="position-relative overflow-hidden">
+                            <img th:src="${vehicle.primaryImageUrl}" class="card-img-top"
+                                 style="height: 200px; object-fit: cover;" alt="Xe">
+
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge bg-success shadow-sm" th:if="${vehicle.status == 'AVAILABLE'}">Sẵn sàng</span>
+                                <span class="badge bg-danger shadow-sm" th:unless="${vehicle.status == 'AVAILABLE'}">Đã thuê</span>
+                            </div>
+
+                            <div class="position-absolute bottom-0 start-0 m-2">
+                                <span class="badge bg-white text-dark shadow-sm border">
+                                    <i class="fas fa-star text-warning"></i> <span th:text="${vehicle.averageRating}">5.0</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title fw-bold text-truncate mb-0" th:text="${vehicle.name}"
+                                    th:title="${vehicle.name}">Tên xe</h5>
+                            </div>
+
+                            <p class="text-muted small mb-3">
+                                <i class="fas fa-motorcycle me-1"></i> <span th:text="${vehicle.brand}">Brand</span> •
+                                <span th:text="${vehicle.year}">2023</span> •
+                                <span th:text="${vehicle.color}">Màu</span>
+                            </p>
+
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-end mb-3">
+                                    <div>
+                                        <small class="text-muted d-block text-decoration-line-through" style="font-size: 0.8rem">
+                                            <span th:text="${#numbers.formatDecimal(vehicle.pricePerDay * 1.15, 0, 'COMMA', 0, 'POINT')}"></span>đ
+                                        </small>
+                                        <span class="text-primary fw-bold fs-5"
+                                              th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'COMMA', 0, 'POINT')}"></span>
+                                        <small class="text-muted">/ngày</small>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid">
+                                    <a th:href="@{/vehicles/detail/{id}(id=${vehicle.id})}"
+                                       class="btn btn-outline-primary rounded-pill">
+                                        Xem chi tiết <i class="fas fa-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <nav aria-label="Page navigation" class="mt-5" th:if="${totalPages > 1}">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link rounded-circle mx-1"
+                           th:href="@{/vehicles(page=${currentPage - 1}, keyword=${keyword}, brand=${selectedBrand}, maxPrice=${maxPrice})}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        th:classappend="${currentPage == i} ? 'active'">
+                        <a class="page-link rounded-circle mx-1"
+                           th:href="@{/vehicles(page=${i}, keyword=${keyword}, brand=${selectedBrand}, maxPrice=${maxPrice})}"
+                           th:text="${i + 1}">1</a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                        <a class="page-link rounded-circle mx-1"
+                           th:href="@{/vehicles(page=${currentPage + 1}, keyword=${keyword}, brand=${selectedBrand}, maxPrice=${maxPrice})}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
 </div>
+
+<style>
+    .card-hover {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .pagination .page-link {
+        width: 40px;
+        height: 40px;
+        line-height: 25px;
+        text-align: center;
+        border: none;
+        color: #333;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        color: white;
+    }
+</style>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

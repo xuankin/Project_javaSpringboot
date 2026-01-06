@@ -17,7 +17,6 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class User extends BaseEntity {
 
     @Id
@@ -42,7 +41,7 @@ public class User extends BaseEntity {
 
     @NotBlank(message = "Mật khẩu không được để trống")
     @Column(name = "password_hash", nullable = false, columnDefinition = "TEXT")
-    @JsonIgnore // Quan trọng: Ẩn mật khẩu khi trả về API
+    @JsonIgnore
     private String passwordHash;
 
     @Size(max = 50)
@@ -53,6 +52,11 @@ public class User extends BaseEntity {
     @Builder.Default
     private Boolean isActive = true;
 
+    // --- MỚI: Thêm trường đánh dấu Scam ---
+    @Column(name = "is_scammed")
+    @Builder.Default
+    private Boolean isScammed = false;
+
     // --- Relationships ---
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -62,24 +66,24 @@ public class User extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     @Builder.Default
-    @ToString.Exclude       // Ngắt vòng lặp
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
-    @ToString.Exclude       // Ngắt vòng lặp
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<RentalOrder> rentalOrders = new HashSet<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude       // Ngắt vòng lặp
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private RentalCart rentalCart;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
-    @ToString.Exclude       // Ngắt vòng lặp
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Feedback> feedbacks = new HashSet<>();
 

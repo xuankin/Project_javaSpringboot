@@ -1,4 +1,3 @@
-// src/main/java/com/motorental/controller/admin/AdminUserController.java
 package com.motorental.controller.admin;
 
 import com.motorental.service.UserService;
@@ -22,6 +21,18 @@ public class AdminUserController {
     public String list(Model model) {
         model.addAttribute("users", userService.getAllUsers());
         return "admin/users/list";
+    }
+
+    // --- MỚI: Endpoint xử lý đánh cờ Scam ---
+    @PostMapping("/toggle-scam/{id}")
+    public String toggleScam(@PathVariable String id, RedirectAttributes redirectAttributes) {
+        try {
+            userService.toggleScamStatus(id);
+            redirectAttributes.addFlashAttribute("success", "Đã cập nhật trạng thái cảnh báo người dùng.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/admin/users";
     }
 
     @PostMapping("/delete/{id}")
