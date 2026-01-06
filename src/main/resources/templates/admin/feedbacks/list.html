@@ -29,7 +29,6 @@
                         <th>Rating</th>
                         <th>Nội dung</th>
                         <th>Ngày tạo</th>
-                        <th>Thao tác</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -41,23 +40,15 @@
                                th:text="${fb.vehicleName}">Xe</a>
                         </td>
                         <td>
-                                    <span class="text-warning">
-                                        <i class="fas fa-star" th:text="${fb.rating}"></i>
-                                    </span>
+                            <span class="text-warning">
+                                <i class="fas fa-star" th:text="${fb.rating}"></i>
+                            </span>
                         </td>
                         <td th:text="${fb.comment}" style="max-width: 300px;"></td>
                         <td th:text="${#temporals.format(fb.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
-                        <td>
-                            <form th:action="@{/admin/feedbacks/delete/{id}(id=${fb.id})}" method="post"
-                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?');" style="display:inline;">
-                                <button type="submit" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-trash"></i> Xóa
-                                </button>
-                            </form>
-                        </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(feedbacks)}">
-                        <td colspan="7" class="text-center">Chưa có đánh giá nào.</td>
+                        <td colspan="6" class="text-center">Chưa có đánh giá nào.</td>
                     </tr>
                     </tbody>
                 </table>
