@@ -44,7 +44,7 @@ public interface RentalOrderRepository extends JpaRepository<RentalOrder, Long> 
             "WHERE o.status = 'PENDING' " +
             "AND (p.method = 'CASH' OR p IS NULL) " +
             "AND d.startDate < :cutoffTime")
-    List<RentalOrder> findOverduePendingOrders(@Param("cutoffTime") LocalDateTime cutoffTime);
+    List<RentalOrder> findOverduePendingOrders(@Param("cutoffTime") java.time.LocalDate cutoffTime);
 
     // --- [MỚI] KIỂM TRA NGƯỜI DÙNG ĐÃ THUÊ XE VÀ HOÀN THÀNH CHƯA ---
     // Logic: User đó + Xe đó + Đơn hàng trạng thái COMPLETED -> Trả về true/false

@@ -1,0 +1,23 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------< com.motorental:motorbike-rental >-------------------
+[INFO] Building motorbike-rental 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ motorbike-rental ---
+[INFO] Deleting C:\Users\lel59\IdeaProjects\Project_javaSpringboot\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ motorbike-rental ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 31 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ motorbike-rental ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 74 source files with javac [debug release 21] to target\classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.734 s
+[INFO] Finished at: 2026-03-24T13:38:37+07:00
+[INFO] ------------------------------------------------------------------------

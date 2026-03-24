@@ -51,6 +51,7 @@ public class SecurityConfig {
                                 "/home",
                                 "/register",
                                 "/login",
+                                "/error",
                                 "/vehicles",
                                 "/vehicles/**",
                                 "/css/**", "/js/**", "/images/**", "/uploads/**", "/webjars/**",

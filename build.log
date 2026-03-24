@@ -1,0 +1,637 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------< com.motorental:motorbike-rental >-------------------
+[INFO] Building motorbike-rental 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ motorbike-rental ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 31 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ motorbike-rental ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 74 source files with javac [debug release 21] to target\classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/controller/admin/AdminPaymentController.java:[21,34] variable paymentService not initialized in the default constructor
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[52,32] cannot find symbol
+  symbol:   method getPayment()
+  location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[55,20] cannot find symbol
+  symbol:   method setRentalOrder(com.motorental.entity.RentalOrder)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[56,27] cannot find symbol
+  symbol:   method getPaymentStatus()
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[60,32] cannot find symbol
+  symbol:   method getTotalPrice()
+  location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[61,16] cannot find symbol
+  symbol:   method setMethod(com.motorental.entity.Payment.PaymentMethod)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[62,16] cannot find symbol
+  symbol:   method setPaymentStatus(com.motorental.entity.Payment.PaymentStatus)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[63,16] cannot find symbol
+  symbol:   method setTransactionId(java.lang.String)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[64,16] cannot find symbol
+  symbol:   method setPaymentDate(java.time.LocalDateTime)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[65,16] cannot find symbol
+  symbol:   method setNotes(java.lang.String)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[80,67] cannot find symbol
+  symbol:   method getOrderId()
+  location: variable p of type com.motorental.dto.payment.PaymentDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[81,50] cannot find symbol
+  symbol:   method getUser()
+  location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[88,20] cannot find symbol
+  symbol:   method getRentalOrder()
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[89,35] cannot find symbol
+  symbol:   method getRentalOrder()
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[90,37] cannot find symbol
+  symbol:   method getRentalOrder()
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[91,24] cannot find symbol
+  symbol:   method getRentalOrder()
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[92,40] cannot find symbol
+  symbol:   method getRentalOrder()
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[102,16] cannot find symbol
+  symbol:   method setPaymentStatus(com.motorental.entity.Payment.PaymentStatus)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[103,16] cannot find symbol
+  symbol:   method setPaymentDate(java.time.LocalDateTime)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[106,36] cannot find symbol
+  symbol:   method getRentalOrder()
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[108,18] cannot find symbol
+  symbol:   method setStatus(com.motorental.entity.RentalOrder.OrderStatus)
+  location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[127,57] cannot find symbol
+  symbol:   method getOrderId()
+  location: variable dto of type com.motorental.dto.payment.CreatePaymentDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[130,32] cannot find symbol
+  symbol:   method getPayment()
+  location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[133,20] cannot find symbol
+  symbol:   method setRentalOrder(com.motorental.entity.RentalOrder)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[137,33] cannot find symbol
+  symbol:   method getTotalPrice()
+  location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[141,16] cannot find symbol
+  symbol:   method setAmount(java.math.BigDecimal)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[142,16] cannot find symbol
+  symbol:   method setMethod(com.motorental.entity.Payment.PaymentMethod)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[143,16] cannot find symbol
+  symbol:   method setPaymentStatus(com.motorental.entity.Payment.PaymentStatus)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[146,16] cannot find symbol
+  symbol:   method setTransactionId(java.lang.String)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[147,16] cannot find symbol
+  symbol:   method setPaymentDate(java.time.LocalDateTime)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[148,16] cannot find symbol
+  symbol:   method setNotes(java.lang.String)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[159,16] cannot find symbol
+  symbol:   method getBankCode()
+  location: variable dto of type com.motorental.dto.payment.CreatePaymentDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[159,46] cannot find symbol
+  symbol:   method getBankCode()
+  location: variable dto of type com.motorental.dto.payment.CreatePaymentDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[160,47] cannot find symbol
+  symbol:   method getBankCode()
+  location: variable dto of type com.motorental.dto.payment.CreatePaymentDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[243,35] cannot find symbol
+  symbol:   method getTransactionId()
+  location: variable p of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[243,67] cannot find symbol
+  symbol:   method getTransactionId()
+  location: variable p of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[248,28] cannot find symbol
+  symbol:   method getPaymentStatus()
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[249,28] cannot find symbol
+  symbol:   method setPaymentStatus(com.motorental.entity.Payment.PaymentStatus)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[250,28] cannot find symbol
+  symbol:   method setPaymentDate(java.time.LocalDateTime)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[251,28] cannot find symbol
+  symbol:   method setNotes(java.lang.String)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[254,48] cannot find symbol
+  symbol:   method getRentalOrder()
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[256,30] cannot find symbol
+  symbol:   method setStatus(com.motorental.entity.RentalOrder.OrderStatus)
+  location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[261,24] cannot find symbol
+  symbol:   method setPaymentStatus(com.motorental.entity.Payment.PaymentStatus)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[262,24] cannot find symbol
+  symbol:   method setNotes(java.lang.String)
+  location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/RentalOrder.java:[73,15] cannot find symbol
+  symbol:   method setRentalOrder(com.motorental.entity.RentalOrder)
+  location: variable detail of type com.motorental.entity.OrderDetail
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/RentalOrder.java:[78,15] cannot find symbol
+  symbol:   method setRentalOrder(<nulltype>)
+  location: variable detail of type com.motorental.entity.OrderDetail
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/User.java:[92,13] cannot find symbol
+  symbol:   method getUsers()
+  location: variable role of type com.motorental.entity.Role
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/User.java:[97,13] cannot find symbol
+  symbol:   method getUsers()
+  location: variable role of type com.motorental.entity.Role
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/Vehicle.java:[102,14] cannot find symbol
+  symbol:   method setVehicle(com.motorental.entity.Vehicle)
+  location: variable image of type com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/RentalCart.java:[35,13] cannot find symbol
+  symbol:   method setRentalCart(com.motorental.entity.RentalCart)
+  location: variable item of type com.motorental.entity.RentalCartItem
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/RentalCart.java:[40,13] cannot find symbol
+  symbol:   method setRentalCart(<nulltype>)
+  location: variable item of type com.motorental.entity.RentalCartItem
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/controller/admin/AdminVehicleController.java:[75,54] cannot find symbol
+  symbol:   method getImageUrls()
+  location: variable detail of type com.motorental.dto.vehicle.VehicleDetailDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/controller/admin/AdminVehicleController.java:[93,55] cannot find symbol
+  symbol:   method getImageUrls()
+  location: variable current of type com.motorental.dto.vehicle.VehicleDetailDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[75,63] cannot find symbol
+  symbol:   method getLicensePlate()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[76,59] cannot find symbol
+  symbol:   method getLicensePlate()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[91,16] cannot find symbol
+  symbol:   method getLicensePlate()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[91,50] cannot find symbol
+  symbol:   method getLicensePlate()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[91,83] cannot find symbol
+  symbol:   method getLicensePlate()
+  location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[92,67] cannot find symbol
+  symbol:   method getLicensePlate()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[95,40] cannot find symbol
+  symbol:   method getLicensePlate()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[98,28] cannot find symbol
+  symbol:   method getName()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[99,35] cannot find symbol
+  symbol:   method getDescription()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[100,35] cannot find symbol
+  symbol:   method getPricePerDay()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[101,29] cannot find symbol
+  symbol:   method getBrand()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[102,29] cannot find symbol
+  symbol:   method getModel()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[103,28] cannot find symbol
+  symbol:   method getYear()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[104,29] cannot find symbol
+  symbol:   method getColor()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[106,16] cannot find symbol
+  symbol:   method getStatus()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[106,44] cannot find symbol
+  symbol:   method getStatus()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[107,64] cannot find symbol
+  symbol:   method getStatus()
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[111,43] cannot find symbol
+  symbol:   method getImages()
+  location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[112,26] invalid method reference
+  cannot find symbol
+    symbol:   method getImageUrl()
+    location: class com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[113,20] cannot find symbol
+  symbol:   method getImages()
+  location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[142,34] constructor VehicleImage in class com.motorental.entity.VehicleImage cannot be applied to given types;
+  required: java.lang.String,java.lang.Boolean
+  found:    no arguments
+  reason: actual and formal argument lists differ in length
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[143,18] cannot find symbol
+  symbol:   method setVehicle(com.motorental.entity.Vehicle)
+  location: variable image of type com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[144,18] cannot find symbol
+  symbol:   method setImageUrl(java.lang.String)
+  location: variable image of type com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[146,22] cannot find symbol
+  symbol:   method setIsPrimary(boolean)
+  location: variable image of type com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[149,22] cannot find symbol
+  symbol:   method setIsPrimary(boolean)
+  location: variable image of type com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[151,20] cannot find symbol
+  symbol:   method getImages()
+  location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[172,12] cannot find symbol
+  symbol:   method setPrimaryImageUrl(java.lang.String)
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[178,38] cannot find symbol
+  symbol:   method getImages()
+  location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[178,64] invalid method reference
+  cannot find symbol
+    symbol:   method getImageUrl()
+    location: class com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[179,12] cannot find symbol
+  symbol:   method setImageUrls(java.util.List<java.lang.String>)
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDetailDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[180,12] cannot find symbol
+  symbol:   method setPrimaryImageUrl(java.lang.String)
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDetailDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[181,76] cannot find symbol
+  symbol:   method getId()
+  location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[182,12] cannot find symbol
+  symbol:   method setAverageRating(double)
+  location: variable dto of type com.motorental.dto.vehicle.VehicleDetailDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[187,20] cannot find symbol
+  symbol:   method getImages()
+  location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[187,51] cannot find symbol
+  symbol:   method getImages()
+  location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[188,23] cannot find symbol
+  symbol:   method getImages()
+  location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[190,22] invalid method reference
+  cannot find symbol
+    symbol:   method getImageUrl()
+    location: class com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[192,32] cannot find symbol
+  symbol:   method getImages()
+  location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[31,60] cannot find symbol
+  symbol:   method getUsername()
+  location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[34,57] cannot find symbol
+  symbol:   method getEmail()
+  location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[39,41] cannot find symbol
+  symbol:   method getFullName()
+  location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[40,41] cannot find symbol
+  symbol:   method getUsername()
+  location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[41,38] cannot find symbol
+  symbol:   method getEmail()
+  location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[42,44] cannot find symbol
+  symbol:   method getPhoneNumber()
+  location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[43,68] cannot find symbol
+  symbol:   method getPassword()
+  location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[44,13] cannot find symbol
+  symbol:   method setIsActive(boolean)
+  location: variable user of type com.motorental.entity.User
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[45,13] cannot find symbol
+  symbol:   method setIsScammed(boolean)
+  location: variable user of type com.motorental.entity.User
+[INFO] 100 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.724 s
+[INFO] Finished at: 2026-03-24T13:36:59+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project motorbike-rental: Compilation failure: Compilation failure: 
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/controller/admin/AdminPaymentController.java:[21,34] variable paymentService not initialized in the default constructor
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[52,32] cannot find symbol
+[ERROR]   symbol:   method getPayment()
+[ERROR]   location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[55,20] cannot find symbol
+[ERROR]   symbol:   method setRentalOrder(com.motorental.entity.RentalOrder)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[56,27] cannot find symbol
+[ERROR]   symbol:   method getPaymentStatus()
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[60,32] cannot find symbol
+[ERROR]   symbol:   method getTotalPrice()
+[ERROR]   location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[61,16] cannot find symbol
+[ERROR]   symbol:   method setMethod(com.motorental.entity.Payment.PaymentMethod)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[62,16] cannot find symbol
+[ERROR]   symbol:   method setPaymentStatus(com.motorental.entity.Payment.PaymentStatus)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[63,16] cannot find symbol
+[ERROR]   symbol:   method setTransactionId(java.lang.String)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[64,16] cannot find symbol
+[ERROR]   symbol:   method setPaymentDate(java.time.LocalDateTime)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[65,16] cannot find symbol
+[ERROR]   symbol:   method setNotes(java.lang.String)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[80,67] cannot find symbol
+[ERROR]   symbol:   method getOrderId()
+[ERROR]   location: variable p of type com.motorental.dto.payment.PaymentDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[81,50] cannot find symbol
+[ERROR]   symbol:   method getUser()
+[ERROR]   location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[88,20] cannot find symbol
+[ERROR]   symbol:   method getRentalOrder()
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[89,35] cannot find symbol
+[ERROR]   symbol:   method getRentalOrder()
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[90,37] cannot find symbol
+[ERROR]   symbol:   method getRentalOrder()
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[91,24] cannot find symbol
+[ERROR]   symbol:   method getRentalOrder()
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[92,40] cannot find symbol
+[ERROR]   symbol:   method getRentalOrder()
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[102,16] cannot find symbol
+[ERROR]   symbol:   method setPaymentStatus(com.motorental.entity.Payment.PaymentStatus)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[103,16] cannot find symbol
+[ERROR]   symbol:   method setPaymentDate(java.time.LocalDateTime)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[106,36] cannot find symbol
+[ERROR]   symbol:   method getRentalOrder()
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[108,18] cannot find symbol
+[ERROR]   symbol:   method setStatus(com.motorental.entity.RentalOrder.OrderStatus)
+[ERROR]   location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[127,57] cannot find symbol
+[ERROR]   symbol:   method getOrderId()
+[ERROR]   location: variable dto of type com.motorental.dto.payment.CreatePaymentDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[130,32] cannot find symbol
+[ERROR]   symbol:   method getPayment()
+[ERROR]   location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[133,20] cannot find symbol
+[ERROR]   symbol:   method setRentalOrder(com.motorental.entity.RentalOrder)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[137,33] cannot find symbol
+[ERROR]   symbol:   method getTotalPrice()
+[ERROR]   location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[141,16] cannot find symbol
+[ERROR]   symbol:   method setAmount(java.math.BigDecimal)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[142,16] cannot find symbol
+[ERROR]   symbol:   method setMethod(com.motorental.entity.Payment.PaymentMethod)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[143,16] cannot find symbol
+[ERROR]   symbol:   method setPaymentStatus(com.motorental.entity.Payment.PaymentStatus)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[146,16] cannot find symbol
+[ERROR]   symbol:   method setTransactionId(java.lang.String)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[147,16] cannot find symbol
+[ERROR]   symbol:   method setPaymentDate(java.time.LocalDateTime)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[148,16] cannot find symbol
+[ERROR]   symbol:   method setNotes(java.lang.String)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[159,16] cannot find symbol
+[ERROR]   symbol:   method getBankCode()
+[ERROR]   location: variable dto of type com.motorental.dto.payment.CreatePaymentDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[159,46] cannot find symbol
+[ERROR]   symbol:   method getBankCode()
+[ERROR]   location: variable dto of type com.motorental.dto.payment.CreatePaymentDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[160,47] cannot find symbol
+[ERROR]   symbol:   method getBankCode()
+[ERROR]   location: variable dto of type com.motorental.dto.payment.CreatePaymentDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[243,35] cannot find symbol
+[ERROR]   symbol:   method getTransactionId()
+[ERROR]   location: variable p of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[243,67] cannot find symbol
+[ERROR]   symbol:   method getTransactionId()
+[ERROR]   location: variable p of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[248,28] cannot find symbol
+[ERROR]   symbol:   method getPaymentStatus()
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[249,28] cannot find symbol
+[ERROR]   symbol:   method setPaymentStatus(com.motorental.entity.Payment.PaymentStatus)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[250,28] cannot find symbol
+[ERROR]   symbol:   method setPaymentDate(java.time.LocalDateTime)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[251,28] cannot find symbol
+[ERROR]   symbol:   method setNotes(java.lang.String)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[254,48] cannot find symbol
+[ERROR]   symbol:   method getRentalOrder()
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[256,30] cannot find symbol
+[ERROR]   symbol:   method setStatus(com.motorental.entity.RentalOrder.OrderStatus)
+[ERROR]   location: variable order of type com.motorental.entity.RentalOrder
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[261,24] cannot find symbol
+[ERROR]   symbol:   method setPaymentStatus(com.motorental.entity.Payment.PaymentStatus)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/PaymentService.java:[262,24] cannot find symbol
+[ERROR]   symbol:   method setNotes(java.lang.String)
+[ERROR]   location: variable payment of type com.motorental.entity.Payment
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/RentalOrder.java:[73,15] cannot find symbol
+[ERROR]   symbol:   method setRentalOrder(com.motorental.entity.RentalOrder)
+[ERROR]   location: variable detail of type com.motorental.entity.OrderDetail
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/RentalOrder.java:[78,15] cannot find symbol
+[ERROR]   symbol:   method setRentalOrder(<nulltype>)
+[ERROR]   location: variable detail of type com.motorental.entity.OrderDetail
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/User.java:[92,13] cannot find symbol
+[ERROR]   symbol:   method getUsers()
+[ERROR]   location: variable role of type com.motorental.entity.Role
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/User.java:[97,13] cannot find symbol
+[ERROR]   symbol:   method getUsers()
+[ERROR]   location: variable role of type com.motorental.entity.Role
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/Vehicle.java:[102,14] cannot find symbol
+[ERROR]   symbol:   method setVehicle(com.motorental.entity.Vehicle)
+[ERROR]   location: variable image of type com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/RentalCart.java:[35,13] cannot find symbol
+[ERROR]   symbol:   method setRentalCart(com.motorental.entity.RentalCart)
+[ERROR]   location: variable item of type com.motorental.entity.RentalCartItem
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/entity/RentalCart.java:[40,13] cannot find symbol
+[ERROR]   symbol:   method setRentalCart(<nulltype>)
+[ERROR]   location: variable item of type com.motorental.entity.RentalCartItem
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/controller/admin/AdminVehicleController.java:[75,54] cannot find symbol
+[ERROR]   symbol:   method getImageUrls()
+[ERROR]   location: variable detail of type com.motorental.dto.vehicle.VehicleDetailDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/controller/admin/AdminVehicleController.java:[93,55] cannot find symbol
+[ERROR]   symbol:   method getImageUrls()
+[ERROR]   location: variable current of type com.motorental.dto.vehicle.VehicleDetailDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[75,63] cannot find symbol
+[ERROR]   symbol:   method getLicensePlate()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[76,59] cannot find symbol
+[ERROR]   symbol:   method getLicensePlate()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[91,16] cannot find symbol
+[ERROR]   symbol:   method getLicensePlate()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[91,50] cannot find symbol
+[ERROR]   symbol:   method getLicensePlate()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[91,83] cannot find symbol
+[ERROR]   symbol:   method getLicensePlate()
+[ERROR]   location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[92,67] cannot find symbol
+[ERROR]   symbol:   method getLicensePlate()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[95,40] cannot find symbol
+[ERROR]   symbol:   method getLicensePlate()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[98,28] cannot find symbol
+[ERROR]   symbol:   method getName()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[99,35] cannot find symbol
+[ERROR]   symbol:   method getDescription()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[100,35] cannot find symbol
+[ERROR]   symbol:   method getPricePerDay()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[101,29] cannot find symbol
+[ERROR]   symbol:   method getBrand()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[102,29] cannot find symbol
+[ERROR]   symbol:   method getModel()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[103,28] cannot find symbol
+[ERROR]   symbol:   method getYear()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[104,29] cannot find symbol
+[ERROR]   symbol:   method getColor()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[106,16] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[106,44] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[107,64] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[111,43] cannot find symbol
+[ERROR]   symbol:   method getImages()
+[ERROR]   location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[112,26] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method getImageUrl()
+[ERROR]     location: class com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[113,20] cannot find symbol
+[ERROR]   symbol:   method getImages()
+[ERROR]   location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[142,34] constructor VehicleImage in class com.motorental.entity.VehicleImage cannot be applied to given types;
+[ERROR]   required: java.lang.String,java.lang.Boolean
+[ERROR]   found:    no arguments
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[143,18] cannot find symbol
+[ERROR]   symbol:   method setVehicle(com.motorental.entity.Vehicle)
+[ERROR]   location: variable image of type com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[144,18] cannot find symbol
+[ERROR]   symbol:   method setImageUrl(java.lang.String)
+[ERROR]   location: variable image of type com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[146,22] cannot find symbol
+[ERROR]   symbol:   method setIsPrimary(boolean)
+[ERROR]   location: variable image of type com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[149,22] cannot find symbol
+[ERROR]   symbol:   method setIsPrimary(boolean)
+[ERROR]   location: variable image of type com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[151,20] cannot find symbol
+[ERROR]   symbol:   method getImages()
+[ERROR]   location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[172,12] cannot find symbol
+[ERROR]   symbol:   method setPrimaryImageUrl(java.lang.String)
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[178,38] cannot find symbol
+[ERROR]   symbol:   method getImages()
+[ERROR]   location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[178,64] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method getImageUrl()
+[ERROR]     location: class com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[179,12] cannot find symbol
+[ERROR]   symbol:   method setImageUrls(java.util.List<java.lang.String>)
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDetailDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[180,12] cannot find symbol
+[ERROR]   symbol:   method setPrimaryImageUrl(java.lang.String)
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDetailDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[181,76] cannot find symbol
+[ERROR]   symbol:   method getId()
+[ERROR]   location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[182,12] cannot find symbol
+[ERROR]   symbol:   method setAverageRating(double)
+[ERROR]   location: variable dto of type com.motorental.dto.vehicle.VehicleDetailDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[187,20] cannot find symbol
+[ERROR]   symbol:   method getImages()
+[ERROR]   location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[187,51] cannot find symbol
+[ERROR]   symbol:   method getImages()
+[ERROR]   location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[188,23] cannot find symbol
+[ERROR]   symbol:   method getImages()
+[ERROR]   location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[190,22] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method getImageUrl()
+[ERROR]     location: class com.motorental.entity.VehicleImage
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/VehicleService.java:[192,32] cannot find symbol
+[ERROR]   symbol:   method getImages()
+[ERROR]   location: variable vehicle of type com.motorental.entity.Vehicle
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[31,60] cannot find symbol
+[ERROR]   symbol:   method getUsername()
+[ERROR]   location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[34,57] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[39,41] cannot find symbol
+[ERROR]   symbol:   method getFullName()
+[ERROR]   location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[40,41] cannot find symbol
+[ERROR]   symbol:   method getUsername()
+[ERROR]   location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[41,38] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[42,44] cannot find symbol
+[ERROR]   symbol:   method getPhoneNumber()
+[ERROR]   location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[43,68] cannot find symbol
+[ERROR]   symbol:   method getPassword()
+[ERROR]   location: variable registrationDto of type com.motorental.dto.user.UserRegistrationDto
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[44,13] cannot find symbol
+[ERROR]   symbol:   method setIsActive(boolean)
+[ERROR]   location: variable user of type com.motorental.entity.User
+[ERROR] /C:/Users/lel59/IdeaProjects/Project_javaSpringboot/src/main/java/com/motorental/service/UserService.java:[45,13] cannot find symbol
+[ERROR]   symbol:   method setIsScammed(boolean)
+[ERROR]   location: variable user of type com.motorental.entity.User
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

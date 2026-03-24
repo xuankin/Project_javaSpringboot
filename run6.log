@@ -1,0 +1,178 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------< com.motorental:motorbike-rental >-------------------
+[INFO] Building motorbike-rental 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.1:run (default-cli) > test-compile @ motorbike-rental >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ motorbike-rental ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 34 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ motorbike-rental ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 74 source files with javac [debug release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ motorbike-rental ---
+[INFO] skip non existing resourceDirectory C:\Users\lel59\IdeaProjects\Project_javaSpringboot\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ motorbike-rental ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 1 source file with javac [debug release 21] to target\test-classes
+[INFO] 
+[INFO] <<< spring-boot:3.2.1:run (default-cli) < test-compile @ motorbike-rental <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.1:run (default-cli) @ motorbike-rental ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.1)
+
+2026-03-24T14:12:32.391+07:00  INFO 25128 --- [  restartedMain] c.motorental.MotorbikeRentalApplication  : Starting MotorbikeRentalApplication using Java 23.0.1 with PID 25128 (C:\Users\lel59\IdeaProjects\Project_javaSpringboot\target\classes started by lel59 in C:\Users\lel59\IdeaProjects\Project_javaSpringboot)
+2026-03-24T14:12:32.396+07:00  INFO 25128 --- [  restartedMain] c.motorental.MotorbikeRentalApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-03-24T14:12:32.642+07:00  INFO 25128 --- [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-03-24T14:12:32.642+07:00  INFO 25128 --- [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-03-24T14:12:33.316+07:00  INFO 25128 --- [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-24T14:12:33.381+07:00  INFO 25128 --- [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 58 ms. Found 12 JPA repository interfaces.
+2026-03-24T14:12:34.000+07:00  INFO 25128 --- [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8088 (http)
+2026-03-24T14:12:34.015+07:00  INFO 25128 --- [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-24T14:12:34.015+07:00  INFO 25128 --- [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.17]
+2026-03-24T14:12:34.059+07:00  INFO 25128 --- [  restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-03-24T14:12:34.060+07:00  INFO 25128 --- [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1417 ms
+2026-03-24T14:12:34.224+07:00  INFO 25128 --- [  restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-03-24T14:12:34.304+07:00  INFO 25128 --- [  restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.1.Final
+2026-03-24T14:12:34.340+07:00  INFO 25128 --- [  restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-03-24T14:12:34.584+07:00  INFO 25128 --- [  restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-24T14:12:34.611+07:00  INFO 25128 --- [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-03-24T14:12:35.549+07:00  INFO 25128 --- [  restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection ConnectionID:1 ClientConnectionId: dbbc1b23-803c-460e-8fbd-e915232ac312
+2026-03-24T14:12:35.550+07:00  INFO 25128 --- [  restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-03-24T14:12:35.576+07:00  WARN 25128 --- [  restartedMain] org.hibernate.orm.deprecation            : HHH90000025: SQLServer2016Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-03-24T14:12:35.577+07:00  WARN 25128 --- [  restartedMain] org.hibernate.orm.deprecation            : HHH90000026: SQLServer2016Dialect has been deprecated; use org.hibernate.dialect.SQLServerDialect instead
+2026-03-24T14:12:36.607+07:00  INFO 25128 --- [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-03-24T14:12:43.191+07:00  INFO 25128 --- [  restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-24T14:12:43.561+07:00  INFO 25128 --- [  restartedMain] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-24T14:12:44.764+07:00  WARN 25128 --- [  restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-03-24T14:12:44.940+07:00  INFO 25128 --- [  restartedMain] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2026-03-24T14:12:45.078+07:00  INFO 25128 --- [  restartedMain] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@63091b88, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@650c67f6, org.springframework.security.web.context.SecurityContextHolderFilter@1f55989f, org.springframework.security.web.header.HeaderWriterFilter@603e7449, org.springframework.web.filter.CorsFilter@12fd131a, org.springframework.security.web.csrf.CsrfFilter@161b1862, org.springframework.security.web.authentication.logout.LogoutFilter@203817b5, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@4837e633, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@3084131a, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@76d8aef, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@816c655, org.springframework.security.web.access.ExceptionTranslationFilter@f0f7283, org.springframework.security.web.access.intercept.AuthorizationFilter@669c03fc]
+2026-03-24T14:12:45.386+07:00  INFO 25128 --- [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-03-24T14:12:45.426+07:00  INFO 25128 --- [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8088 (http) with context path ''
+2026-03-24T14:12:45.428+07:00  INFO 25128 --- [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-03-24T14:12:45.428+07:00  INFO 25128 --- [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@653f34ad]]
+2026-03-24T14:12:45.429+07:00  INFO 25128 --- [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-03-24T14:12:45.435+07:00  INFO 25128 --- [  restartedMain] c.motorental.MotorbikeRentalApplication  : Started MotorbikeRentalApplication in 13.388 seconds (process running for 13.836)
+Hibernate: select r1_0.id,r1_0.description,r1_0.name from roles r1_0 where r1_0.name=?
+Hibernate: select r1_0.id,r1_0.description,r1_0.name from roles r1_0 where r1_0.name=?
+Hibernate: select top (?) u1_0.id from users u1_0 where u1_0.username=?
+2026-03-24T14:12:50.455+07:00  INFO 25128 --- [MessageBroker-1] c.m.service.OrderCleanupService          : --- B???t ?????u qu??t c??c ????n h??ng treo (Pending) qu?? h???n ---
+2026-03-24T14:12:50.490+07:00 ERROR 25128 --- [MessageBroker-1] o.s.s.s.TaskUtils$LoggingErrorHandler    : Unexpected error occurred in scheduled task
+
+org.springframework.dao.InvalidDataAccessApiUsageException: Argument [2026-03-23T14:12:50.456449300] of type [java.time.LocalDateTime] did not match parameter type [java.time.LocalDate (n/a)]
+	at org.springframework.orm.jpa.EntityManagerFactoryUtils.convertJpaAccessExceptionIfPossible(EntityManagerFactoryUtils.java:371) ~[spring-orm-6.1.2.jar:6.1.2]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:246) ~[spring-orm-6.1.2.jar:6.1.2]
+	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550) ~[spring-orm-6.1.2.jar:6.1.2]
+	at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:335) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:152) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:135) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:249) ~[spring-aop-6.1.2.jar:6.1.2]
+	at jdk.proxy4/jdk.proxy4.$Proxy151.findOverduePendingOrders(Unknown Source) ~[na:na]
+	at com.motorental.service.OrderCleanupService.scanAndCancelOverdueOrders(OrderCleanupService.java:32) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.runInternal(ScheduledMethodRunnable.java:130) ~[spring-context-6.1.2.jar:6.1.2]
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.lambda$run$2(ScheduledMethodRunnable.java:124) ~[spring-context-6.1.2.jar:6.1.2]
+	at io.micrometer.observation.Observation.observe(Observation.java:499) ~[micrometer-observation-1.12.1.jar:1.12.1]
+	at org.springframework.scheduling.support.ScheduledMethodRunnable.run(ScheduledMethodRunnable.java:124) ~[spring-context-6.1.2.jar:6.1.2]
+	at org.springframework.scheduling.support.DelegatingErrorHandlingRunnable.run(DelegatingErrorHandlingRunnable.java:54) ~[spring-context-6.1.2.jar:6.1.2]
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[na:na]
+	at java.base/java.util.concurrent.FutureTask.runAndReset(FutureTask.java:358) ~[na:na]
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:305) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[na:na]
+	at java.base/java.lang.Thread.run(Thread.java:1575) ~[na:na]
+Caused by: org.hibernate.query.QueryArgumentException: Argument [2026-03-23T14:12:50.456449300] of type [java.time.LocalDateTime] did not match parameter type [java.time.LocalDate (n/a)]
+	at org.hibernate.query.spi.QueryParameterBindingValidator.validate(QueryParameterBindingValidator.java:85) ~[hibernate-core-6.4.1.Final.jar:6.4.1.Final]
+	at org.hibernate.query.spi.QueryParameterBindingValidator.validate(QueryParameterBindingValidator.java:32) ~[hibernate-core-6.4.1.Final.jar:6.4.1.Final]
+	at org.hibernate.query.internal.QueryParameterBindingImpl.validate(QueryParameterBindingImpl.java:362) ~[hibernate-core-6.4.1.Final.jar:6.4.1.Final]
+	at org.hibernate.query.internal.QueryParameterBindingImpl.setBindValue(QueryParameterBindingImpl.java:137) ~[hibernate-core-6.4.1.Final.jar:6.4.1.Final]
+	at org.hibernate.query.spi.AbstractCommonQueryContract.setParameter(AbstractCommonQueryContract.java:835) ~[hibernate-core-6.4.1.Final.jar:6.4.1.Final]
+	at org.hibernate.query.spi.AbstractSelectionQuery.setParameter(AbstractSelectionQuery.java:900) ~[hibernate-core-6.4.1.Final.jar:6.4.1.Final]
+	at org.hibernate.query.sqm.internal.QuerySqmImpl.setParameter(QuerySqmImpl.java:1258) ~[hibernate-core-6.4.1.Final.jar:6.4.1.Final]
+	at org.hibernate.query.sqm.internal.QuerySqmImpl.setParameter(QuerySqmImpl.java:140) ~[hibernate-core-6.4.1.Final.jar:6.4.1.Final]
+	at org.springframework.data.jpa.repository.query.QueryParameterSetter$BindableQuery.setParameter(QueryParameterSetter.java:326) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.QueryParameterSetter$NamedOrIndexedQueryParameterSetter.lambda$setParameter$4(QueryParameterSetter.java:117) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.QueryParameterSetter$ErrorHandling$1.execute(QueryParameterSetter.java:140) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.QueryParameterSetter$NamedOrIndexedQueryParameterSetter.setParameter(QueryParameterSetter.java:117) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.ParameterBinder.bind(ParameterBinder.java:84) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.ParameterBinder.bind(ParameterBinder.java:76) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.ParameterBinder.bindAndPrepare(ParameterBinder.java:98) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.AbstractStringBasedJpaQuery.doCreateQuery(AbstractStringBasedJpaQuery.java:106) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.AbstractJpaQuery.createQuery(AbstractJpaQuery.java:239) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.JpaQueryExecution$CollectionExecution.doExecute(JpaQueryExecution.java:129) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.JpaQueryExecution.execute(JpaQueryExecution.java:92) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.AbstractJpaQuery.doExecute(AbstractJpaQuery.java:149) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.jpa.repository.query.AbstractJpaQuery.execute(AbstractJpaQuery.java:137) ~[spring-data-jpa-3.2.1.jar:3.2.1]
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170) ~[spring-data-commons-3.2.1.jar:3.2.1]
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158) ~[spring-data-commons-3.2.1.jar:3.2.1]
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:164) ~[spring-data-commons-3.2.1.jar:3.2.1]
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143) ~[spring-data-commons-3.2.1.jar:3.2.1]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70) ~[spring-data-commons-3.2.1.jar:3.2.1]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.1.2.jar:6.1.2]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.2.jar:6.1.2]
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137) ~[spring-tx-6.1.2.jar:6.1.2]
+	... 21 common frames omitted
+
+2026-03-24T14:13:45.424+07:00  INFO 25128 --- [MessageBroker-2] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 3, active threads = 1, queued tasks = 1, completed tasks = 1]
+2026-03-24T14:15:23.027+07:00  INFO 25128 --- [nio-8088-exec-1] o.apache.tomcat.util.http.parser.Cookie  : A cookie header was received [g_state={"i_l":0,"i_ll":1773222836053,"i_b":"EJ1rb85y4PVD8xOxTiSBgNfN9LK5MFZu397LAy0ju9Y","i_e":{"enable_itp_optimization":3}};] that contained an invalid cookie. That cookie will be ignored.
+ Note: further occurrences of this error will be logged at DEBUG level.
+2026-03-24T14:15:23.157+07:00  INFO 25128 --- [nio-8088-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-03-24T14:15:23.159+07:00  INFO 25128 --- [nio-8088-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-03-24T14:15:23.309+07:00  INFO 25128 --- [nio-8088-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 146 ms
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.email,u1_0.full_name,u1_0.is_active,u1_0.is_scammed,u1_0.password_hash,u1_0.phone_number,u1_0.updated_at,u1_0.username from users u1_0 where u1_0.username=?
+Hibernate: select rc1_0.id,rc1_0.created_at,rc1_0.updated_at,rc1_0.user_id from rental_carts rc1_0 where rc1_0.user_id=?
+Hibernate: select r1_0.user_id,r1_1.id,r1_1.description,r1_1.name from user_roles r1_0 join roles r1_1 on r1_1.id=r1_0.role_id where r1_0.user_id=?
+Hibernate: select count_big(*) from users u1_0
+Hibernate: select count_big(*) from vehicles v1_0
+Hibernate: select count_big(*) from rental_orders ro1_0
+Hibernate: select coalesce(sum(ro1_0.total_price),0) from rental_orders ro1_0 where ro1_0.status='COMPLETED'
+Hibernate: select coalesce(sum(ro1_0.total_price),0) from rental_orders ro1_0 where ro1_0.status='COMPLETED' and datepart(year,ro1_0.created_at)=? and datepart(month,ro1_0.created_at)=?
+Hibernate: select count_big(ro1_0.id) from rental_orders ro1_0 where ro1_0.status=?
+Hibernate: select count_big(ro1_0.id) from rental_orders ro1_0 where ro1_0.status=?
+Hibernate: select count_big(ro1_0.id) from rental_orders ro1_0 where ro1_0.status=?
+Hibernate: select count_big(ro1_0.id) from rental_orders ro1_0 where ro1_0.status=?
+Hibernate: select count_big(v1_0.id) from vehicles v1_0 where v1_0.status=?
+Hibernate: select count_big(v1_0.id) from vehicles v1_0 where v1_0.status=?
+Hibernate: select ro1_0.id,ro1_0.created_at,ro1_0.notes,ro1_0.order_code,ro1_0.pickup_location,ro1_0.status,ro1_0.total_price,ro1_0.updated_at,ro1_0.user_id from rental_orders ro1_0 order by ro1_0.id desc offset ? rows fetch first ? rows only
+Hibernate: select coalesce(sum(ro1_0.total_price),0) from rental_orders ro1_0 where ro1_0.status='COMPLETED' and datepart(year,ro1_0.created_at)=? and datepart(month,ro1_0.created_at)=?
+Hibernate: select coalesce(sum(ro1_0.total_price),0) from rental_orders ro1_0 where ro1_0.status='COMPLETED' and datepart(year,ro1_0.created_at)=? and datepart(month,ro1_0.created_at)=?
+Hibernate: select coalesce(sum(ro1_0.total_price),0) from rental_orders ro1_0 where ro1_0.status='COMPLETED' and datepart(year,ro1_0.created_at)=? and datepart(month,ro1_0.created_at)=?
+Hibernate: select coalesce(sum(ro1_0.total_price),0) from rental_orders ro1_0 where ro1_0.status='COMPLETED' and datepart(year,ro1_0.created_at)=? and datepart(month,ro1_0.created_at)=?
+Hibernate: select coalesce(sum(ro1_0.total_price),0) from rental_orders ro1_0 where ro1_0.status='COMPLETED' and datepart(year,ro1_0.created_at)=? and datepart(month,ro1_0.created_at)=?
+Hibernate: select coalesce(sum(ro1_0.total_price),0) from rental_orders ro1_0 where ro1_0.status='COMPLETED' and datepart(year,ro1_0.created_at)=? and datepart(month,ro1_0.created_at)=?
+Hibernate: select ro1_0.id,ro1_0.created_at,ro1_0.notes,ro1_0.order_code,ro1_0.pickup_location,ro1_0.status,ro1_0.total_price,ro1_0.updated_at,ro1_0.user_id from rental_orders ro1_0 order by ro1_0.created_at desc
+Hibernate: select v1_0.id,v1_0.brand,v1_0.color,v1_0.created_at,v1_0.description,v1_0.license_plate,v1_0.model,v1_0.name,v1_0.price_per_day,v1_0.rental_count,v1_0.status,v1_0.updated_at,v1_0.year from vehicles v1_0 where (? is null or lower(v1_0.name) like lower(('%'+?+'%'))) and (? is null or v1_0.status=?)
+Hibernate: select ro1_0.id,ro1_0.created_at,ro1_0.notes,ro1_0.order_code,ro1_0.pickup_location,ro1_0.status,ro1_0.total_price,ro1_0.updated_at,ro1_0.user_id from rental_orders ro1_0 order by ro1_0.created_at desc
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.email,u1_0.full_name,u1_0.is_active,u1_0.is_scammed,u1_0.password_hash,u1_0.phone_number,u1_0.updated_at,u1_0.username from users u1_0
+Hibernate: select rc1_0.id,rc1_0.created_at,rc1_0.updated_at,rc1_0.user_id from rental_carts rc1_0 where rc1_0.user_id=?
+Hibernate: select r1_0.user_id,r1_1.id,r1_1.description,r1_1.name from user_roles r1_0 join roles r1_1 on r1_1.id=r1_0.role_id where r1_0.user_id=?
+Hibernate: select f1_0.id,f1_0.content,f1_0.created_at,f1_0.rating,f1_0.updated_at,f1_0.user_id,f1_0.vehicle_id from feedbacks f1_0
+Hibernate: select distinct cm1_0.sender from chat_messages cm1_0 where cm1_0.sender<>'Admin'
+Hibernate: select u1_0.id,u1_0.created_at,u1_0.email,u1_0.full_name,u1_0.is_active,u1_0.is_scammed,u1_0.password_hash,u1_0.phone_number,u1_0.updated_at,u1_0.username from users u1_0
+Hibernate: select rc1_0.id,rc1_0.created_at,rc1_0.updated_at,rc1_0.user_id from rental_carts rc1_0 where rc1_0.user_id=?
+Hibernate: select r1_0.user_id,r1_1.id,r1_1.description,r1_1.name from user_roles r1_0 join roles r1_1 on r1_1.id=r1_0.role_id where r1_0.user_id=?

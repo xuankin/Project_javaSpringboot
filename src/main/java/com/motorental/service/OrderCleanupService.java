@@ -26,8 +26,8 @@ public class OrderCleanupService {
     public void scanAndCancelOverdueOrders() {
         logger.info("--- Bắt đầu quét các đơn hàng treo (Pending) quá hạn ---");
 
-        // Logic: Nếu (Ngày bắt đầu thuê) < (Hiện tại - 24 giờ) => Quá hạn nhận xe 1 ngày
-        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(24);
+        // Logic: Nếu (Ngày bắt đầu thuê) < (Hôm qua) => Quá hạn nhận xe 1 ngày
+        java.time.LocalDate cutoffTime = java.time.LocalDate.now().minusDays(1);
 
         List<RentalOrder> overdueOrders = orderRepository.findOverduePendingOrders(cutoffTime);
 
