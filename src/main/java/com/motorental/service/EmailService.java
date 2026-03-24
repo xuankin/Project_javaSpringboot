@@ -26,7 +26,7 @@ public class EmailService {
     // SỬA 2: Thay new Locale(...) bằng Locale.of(...) cho Java 21
     private String formatCurrency(BigDecimal amount) {
         if (amount == null) return "0 đ";
-        Locale localeVN = Locale.of("vi", "VN");
+        Locale localeVN = new Locale("vi", "VN");
         NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(localeVN);
         return currencyFormatter.format(amount);
     }

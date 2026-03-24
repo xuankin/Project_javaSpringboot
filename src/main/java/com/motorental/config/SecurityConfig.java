@@ -20,77 +20,75 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
-    private final AuthenticationSuccessHandler successHandler; // Inject handler vừa tạo
+        private final CustomUserDetailsService userDetailsService;
+        private final AuthenticationSuccessHandler successHandler; // Inject handler vừa tạo
 
-    @Bean
-    public static PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public static PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
-        auth.setUserDetailsService(userDetailsService);
-        auth.setPasswordEncoder(passwordEncoder());
-        return auth;
-    }
+        @Bean
+        public DaoAuthenticationProvider authenticationProvider() {
+                DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
+                auth.setUserDetailsService(userDetailsService);
+                auth.setPasswordEncoder(passwordEncoder());
+                return auth;
+        }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+                return authConfig.getAuthenticationManager();
+        }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests(auth -> auth
-                        // 1. PUBLIC: Cho phép truy cập tự do
-                        .requestMatchers(
-                                "/",
-                                "/home",
-                                "/register",
-                                "/login",
-                                "/vehicles",
-                                "/vehicles/**",
-                                "/css/**", "/js/**", "/images/**", "/uploads/**", "/webjars/**",
-                                "/ws/**","/chat" //
-                        ).permitAll()
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .authorizeHttpRequests(auth -> auth
+                                                // 1. PUBLIC: Cho phép truy cập tự do
+                                                .requestMatchers(
+                                                                "/",
+                                                                "/home",
+                                                                "/register",
+                                                                "/login",
+                                                                "/vehicles",
+                                                                "/vehicles/**",
+                                                                "/css/**", "/js/**", "/images/**", "/uploads/**",
+                                                                "/webjars/**",
+                                                                "/ws/**", "/chat" //
+                                                ).permitAll()
 
-                        // 2. ADMIN: Chỉ Admin mới vào được trang quản trị
-                        // QUAN TRỌNG: Sửa đường dẫn từ "/templates/admin/**" thành "/admin/**"
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                                                // 2. ADMIN: Chỉ Admin mới vào được trang quản trị
+                                                // QUAN TRỌNG: Sửa đường dẫn từ "/templates/admin/**" thành "/admin/**"
+                                                .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                        // 3. USER: Các trang cần đăng nhập
-                        .requestMatchers(
-                                "/cart/**",
-                                "/orders/**",
-                                "/my-orders",
-                                "/payments/**",
-                                "/profile",
-                                "/feedbacks/add"
-                        ).authenticated()
+                                                // 3. USER: Các trang cần đăng nhập
+                                                .requestMatchers(
+                                                                "/cart/**",
+                                                                "/orders/**",
+                                                                "/my-orders",
+                                                                "/payments/**",
+                                                                "/profile",
+                                                                "/feedbacks/add")
+                                                .authenticated()
 
-                        // 4. Các request còn lại phải xác thực
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/login")
-                        // QUAN TRỌNG: Thay defaultSuccessUrl bằng successHandler để phân quyền chuyển hướng
-                        .successHandler(successHandler)
-                        .failureUrl("/login?error=true")
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                        .logoutSuccessUrl("/login?logout=true")
-                        .permitAll()
-                )
-                .exceptionHandling(ex -> ex
-                        .accessDeniedPage("/403")
-                );
+                                                // 4. Các request còn lại phải xác thực
+                                                .anyRequest().authenticated())
+                                .formLogin(form -> form
+                                                .loginPage("/login")
+                                                .loginProcessingUrl("/login")
+                                                // QUAN TRỌNG: Thay defaultSuccessUrl bằng successHandler để phân quyền
+                                                // chuyển hướng
+                                                .successHandler(successHandler)
+                                                .failureUrl("/login?error=true")
+                                                .permitAll())
+                                .logout(logout -> logout
+                                                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                                                .logoutSuccessUrl("/login?logout=true")
+                                                .permitAll())
+                                .exceptionHandling(ex -> ex
+                                                .accessDeniedPage("/403"));
 
-        return http.build();
-    }
+                return http.build();
+        }
 }
