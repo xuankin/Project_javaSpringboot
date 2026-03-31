@@ -1,0 +1,27 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------< com.motorental:motorbike-rental >-------------------
+[INFO] Building motorbike-rental 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.1:run (default-cli) > test-compile @ motorbike-rental >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ motorbike-rental ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 34 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ motorbike-rental ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ motorbike-rental ---
+[INFO] skip non existing resourceDirectory C:\Users\tuqua\Desktop\Chieut3\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ motorbike-rental ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.1:run (default-cli) < test-compile @ motorbike-rental <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.1:run (default-cli) @ motorbike-rental ---
+[INFO] Attaching agents: []
