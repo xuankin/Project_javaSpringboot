@@ -68,7 +68,9 @@ public class SecurityConfig {
                                 "/my-orders",
                                 "/payments/**",
                                 "/profile",
-                                "/feedbacks/add"
+                                "/feedbacks/add",
+                                "/user/chat",          // Trang chat cần đăng nhập
+                                "/api/chat/**"          // API chat cần đăng nhập
                         ).authenticated()
 
                         // 4. Các request còn lại phải xác thực
