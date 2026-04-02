@@ -30,4 +30,16 @@ public class ChatService {
     public List<String> getUserList() {
         return chatMessageRepository.findAllChatUsers();
     }
+
+    public long getUnreadCount(String username) {
+        return chatMessageRepository.countUnreadMessagesByReceiver(username);
+    }
+
+    public long getUnreadCountFromUserToAdmin(String user) {
+        return chatMessageRepository.countUnreadFromUserToAdmin(user);
+    }
+
+    public void markAsRead(String receiver, String sender) {
+        chatMessageRepository.markMessagesAsRead(receiver, sender);
+    }
 }
