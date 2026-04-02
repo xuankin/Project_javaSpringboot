@@ -372,6 +372,7 @@ function connect() {
             var msg = JSON.parse(payload.body);
             hideTyping();
             appendMessage({ content: msg.content, adminSender: true, timestamp: new Date().toISOString() });
+            markMessagesAsRead(); // Đánh dấu đã đọc ngay khi nhận được
         });
 
         // Load lịch sử sau khi connect thành công
@@ -399,6 +400,7 @@ function loadHistory() {
                 appendSystemMsg('Đây là lần đầu bạn chat. Hãy gửi tin nhắn để bắt đầu!');
             } else {
                 data.forEach(function(msg) { appendMessage(msg); });
+                markMessagesAsRead(); // Đánh dấu đã đọc lịch sử cũ
             }
             scrollBottom();
         })
@@ -406,6 +408,12 @@ function loadHistory() {
             console.error(err);
             loadingArea.innerHTML = '<i class="fas fa-exclamation-triangle text-warning"></i><span>Không thể tải lịch sử.</span>';
         });
+}
+
+// ---- MARK AS READ ----
+function markMessagesAsRead() {
+    fetch('/api/chat/mark-read?sender=Admin', { method: 'POST' })
+        .catch(function(err) { console.error('Lỗi khi mark as read', err); });
 }
 
 // ---- SEND ----

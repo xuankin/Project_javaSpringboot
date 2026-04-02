@@ -36,4 +36,22 @@
         </div>
     </div>
 </nav>
+<script sec:authorize="isAuthenticated() and !hasRole('ADMIN')">
+    function checkUnreadMsgs() {
+        if(window.location.pathname === '/user/chat') return; // Do not poll unread if inside chat UI (already handled)
+        fetch('/api/chat/unread-count')
+            .then(res => res.json())
+            .then(count => {
+                var badge = document.getElementById('nav-unread-badge');
+                if(badge) {
+                    badge.innerText = count > 9 ? '9+' : count;
+                    badge.style.display = count > 0 ? 'inline-block' : 'none';
+                }
+            }).catch(e => console.log('Không thể lấy tin nhắn chưa đọc:', e));
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        checkUnreadMsgs();
+        setInterval(checkUnreadMsgs, 15000); 
+    });
+</script>
 </html>
