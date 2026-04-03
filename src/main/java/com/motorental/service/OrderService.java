@@ -5,15 +5,19 @@ import com.motorental.dto.order.OrderDto;
 import com.motorental.dto.order.OrderDetailDto;
 import com.motorental.dto.payment.PaymentDto;
 import com.motorental.entity.*;
+import com.motorental.model.DiscountCode; // Import the DiscountCode class
 import com.motorental.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,9 +26,10 @@ public class OrderService {
 
     private final RentalOrderRepository orderRepository;
     private final VehicleAvailabilityRepository availabilityRepository;
-    private final VehicleRepository vehicleRepository; // [LƯU Ý] Đảm bảo đã inject Repository này (thường Lombok làm hộ rồi)
+    private final VehicleRepository vehicleRepository;
     private final CartService cartService;
     private final EmailService emailService;
+    private final DiscountCodeService discountCodeService; // Injected
     private final ModelMapper modelMapper;
 
     @Transactional(rollbackFor = Exception.class)
@@ -44,14 +49,9 @@ public class OrderService {
                 VehicleAvailability.AvailabilityStatus.COMPLETED
         );
 
-        // 1. Kiểm tra tính khả dụng (CÓ SỬ DỤNG LOCKING)
         for (RentalCartItem item : cart.getItems()) {
-
-            // --- [MỚI] QUAN TRỌNG: Lock xe lại trước khi kiểm tra ---
-            // Dòng này sẽ bắt các Request khác phải chờ nếu đang cố truy cập cùng 1 xe
             vehicleRepository.findByIdWithLock(item.getVehicle().getId())
                     .orElseThrow(() -> new RuntimeException("Xe không tồn tại hoặc đang bận xử lý!"));
-            // --------------------------------------------------------
 
             List<VehicleAvailability> conflicts = availabilityRepository.findConflictingAvailabilities(
                     item.getVehicle().getId(),
@@ -66,20 +66,45 @@ public class OrderService {
             }
         }
 
-        // 2. Tạo đối tượng đơn hàng
         RentalOrder order = new RentalOrder();
         order.setUser(cart.getUser());
         order.setPickupLocation(createOrderDto.getPickupLocation());
         order.setNotes(createOrderDto.getNotes());
         order.setStatus(RentalOrder.OrderStatus.PENDING);
 
-        BigDecimal totalPrice = BigDecimal.ZERO;
+        BigDecimal originalTotalPrice = cart.getItems().stream()
+                .map(RentalCartItem::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 3. Xử lý chi tiết đơn hàng
+        BigDecimal finalTotalPrice = originalTotalPrice;
+
+        // --- Discount Code Logic ---
+        if (StringUtils.hasText(createOrderDto.getDiscountCode())) {
+            String code = createOrderDto.getDiscountCode();
+            Optional<DiscountCode> discountOpt = discountCodeService.findByCode(code);
+
+            if (discountOpt.isPresent() && discountCodeService.isCodeValid(code)) {
+                DiscountCode discount = discountOpt.get();
+                BigDecimal discountAmount = BigDecimal.valueOf(discount.getDiscountPercentage());
+                if (discountAmount.compareTo(originalTotalPrice) > 0) {
+                    discountAmount = originalTotalPrice;
+                }
+                finalTotalPrice = originalTotalPrice.subtract(discountAmount);
+
+                order.setDiscountCode(discount.getCode());
+                order.setDiscountAmount(discountAmount);
+            } else {
+                throw new RuntimeException("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
+            }
+        }
+        // -------------------------
+
+        order.setTotalPrice(finalTotalPrice);
+
         for (RentalCartItem item : cart.getItems()) {
             OrderDetail detail = new OrderDetail();
             detail.setRentalOrder(order);
-            detail.setVehicle(item.getVehicle()); // Lưu ý: item.getVehicle() ở đây vẫn dùng được vì transaction chưa kết thúc
+            detail.setVehicle(item.getVehicle());
             detail.setStartDate(item.getStartDate());
             detail.setEndDate(item.getEndDate());
             detail.setPricePerDay(item.getPricePerDay());
@@ -87,7 +112,6 @@ public class OrderService {
             detail.setTotalPrice(item.getTotalPrice());
 
             order.addOrderDetail(detail);
-            totalPrice = totalPrice.add(item.getTotalPrice());
 
             VehicleAvailability availability = new VehicleAvailability();
             availability.setVehicle(item.getVehicle());
@@ -100,13 +124,9 @@ public class OrderService {
             item.getVehicle().incrementRentalCount();
         }
 
-        order.setTotalPrice(totalPrice);
         RentalOrder savedOrder = orderRepository.save(order);
-
-        // 4. Xóa giỏ hàng
         cartService.clearCart(userId);
 
-        // 5. Gửi email
         try {
             emailService.sendOrderConfirmationEmail(cart.getUser().getEmail(), savedOrder);
         } catch (Exception e) {
