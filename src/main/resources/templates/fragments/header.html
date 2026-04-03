@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<nav th:fragment="header" class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/"><i class="fas fa-motorcycle me-2"></i>MotoRental</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item"><a class="nav-link" href="/">Trang chủ</a></li>
+                <li class="nav-item"><a class="nav-link" href="/vehicles">Thuê xe</a></li>
+
+                <!-- Hiện nút Chat chỉ khi user đã đăng nhập và không phải admin -->
+                <li sec:authorize="isAuthenticated() and !hasRole('ADMIN')" class="nav-item">
+                    <a class="nav-link position-relative" href="/user/chat" id="nav-chat-link"
+                       title="Chat hỗ trợ với chủ shop">
+                        <i class="fas fa-headset me-1"></i>Hỗ trợ
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              id="nav-unread-badge" style="display:none; font-size:0.6rem;">!</span>
+                    </a>
+                </li>
+
+                <li sec:authorize="!isAuthenticated()" class="nav-item">
+                    <a class="nav-link" href="/login">Đăng nhập</a>
+                </li>
+                <li sec:authorize="isAuthenticated()" class="nav-item">
+                    <a class="nav-link text-info" href="/profile" sec:authentication="name">User</a>
+                </li>
+                <li sec:authorize="isAuthenticated()" class="nav-item">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-link nav-link text-danger">Đăng xuất</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<script sec:authorize="isAuthenticated() and !hasRole('ADMIN')">
+    function checkUnreadMsgs() {
+        if(window.location.pathname === '/user/chat') return; // Do not poll unread if inside chat UI (already handled)
+        fetch('/api/chat/unread-count')
+            .then(res => res.json())
+            .then(count => {
+                var badge = document.getElementById('nav-unread-badge');
+                if(badge) {
+                    badge.innerText = count > 9 ? '9+' : count;
+                    badge.style.display = count > 0 ? 'inline-block' : 'none';
+                }
+            }).catch(e => console.log('Không thể lấy tin nhắn chưa đọc:', e));
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        checkUnreadMsgs();
+        setInterval(checkUnreadMsgs, 15000); 
+    });
+</script>
+</html>
