@@ -26,11 +26,5 @@ public class ChatMessage {
 
     // Đánh dấu tin nhắn là của ai để dễ query
     // true: Admin gửi, false: User gửi
-    // Đánh dấu tin nhắn là của admin
     private boolean isAdminSender;
-
-    // Đánh dấu tin nhắn đã đọc chưa (false = chưa đọc)
-    // Admin chưa đọc = user gửi lên mà admin chưa xem
-    @Builder.Default
-    private boolean isRead = false;
 }

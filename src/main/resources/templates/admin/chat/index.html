@@ -88,40 +88,26 @@
                 .then(users => {
                     var list = document.getElementById('user-list');
                     list.innerHTML = '';
-                    users.forEach(user => addUserToListUI(user.username, user.unreadCount));
+                    users.forEach(user => addUserToListUI(user));
                 });
         }
 
-        function addUserToListUI(username, unreadCount) {
+        function addUserToListUI(username) {
             var list = document.getElementById('user-list');
-            var existingItem = document.getElementById('user-item-' + username);
-            if(existingItem) {
-                var badge = document.getElementById('badge-' + username);
-                if (badge && unreadCount !== undefined) {
-                    badge.innerText = unreadCount;
-                    badge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
-                }
-                return;
-            }
-
-            var displayBadge = (unreadCount && unreadCount > 0) ? 'inline-block' : 'none';
-            var count = unreadCount || 0;
+            if(document.getElementById('user-item-' + username)) return;
 
             var item = document.createElement('div');
             item.className = 'list-group-item chat-user-item p-3 border-0 border-bottom';
             item.id = 'user-item-' + username;
             item.onclick = function() { selectUser(username); };
             item.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center w-100">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3" style="width: 35px; height: 35px;">
-                            ${username.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                            <h6 class="mb-0 text-dark user-name">${username}</h6>
-                        </div>
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3" style="width: 35px; height: 35px;">
+                        ${username.charAt(0).toUpperCase()}
                     </div>
-                    <span id="badge-${username}" class="badge bg-danger rounded-pill" style="display: ${displayBadge};">${count}</span>
+                    <div>
+                        <h6 class="mb-0 text-dark user-name">${username}</h6>
+                    </div>
                 </div>`;
             list.prepend(item);
         }
@@ -141,10 +127,6 @@
             var activeItem = document.getElementById('user-item-' + username);
             if(activeItem) activeItem.classList.add('active');
 
-            // Ẩn badge vì đã đọc
-            var badge = document.getElementById('badge-' + username);
-            if (badge) { badge.style.display = 'none'; badge.innerText = '0'; }
-
             fetch('/api/chat/history?user=' + username)
                 .then(res => res.json())
                 .then(msgs => {
@@ -157,13 +139,7 @@
                         renderMessage(msg.content, msg.adminSender);
                     });
                     scrollToBottom();
-                    markUserAsReadInDB(username);
                 });
-        }
-
-        function markUserAsReadInDB(username) {
-            fetch('/api/chat/admin/mark-read?sender=' + username, { method: 'POST' })
-                .catch(err => console.error("Lỗi khi mark as read: ", err));
         }
 
         function connectAdmin() {
@@ -179,26 +155,16 @@
         }
 
         function handleIncomingMessage(msg) {
+            addUserToListUI(msg.sender);
             if (selectedUser === msg.sender) {
                 renderMessage(msg.content, false);
                 scrollToBottom();
-                markUserAsReadInDB(msg.sender);
-                var item = document.getElementById('user-item-' + msg.sender);
-                if(item) item.parentNode.prepend(item);
             } else {
-                var existingItem = document.getElementById('user-item-' + msg.sender);
-                if(existingItem) {
-                    var badge = document.getElementById('badge-' + msg.sender);
-                    if(badge) {
-                        var count = parseInt(badge.innerText || '0') + 1;
-                        badge.innerText = count;
-                        badge.style.display = 'inline-block';
-                    }
-                    existingItem.style.backgroundColor = "#fff3cd";
-                    setTimeout(() => existingItem.style.backgroundColor = "", 2000);
-                    existingItem.parentNode.prepend(existingItem);
-                } else {
-                    addUserToListUI(msg.sender, 1);
+                var item = document.getElementById('user-item-' + msg.sender);
+                if(item) {
+                    item.style.backgroundColor = "#fff3cd";
+                    // Move to top
+                    item.parentNode.prepend(item);
                 }
             }
         }

@@ -63,9 +63,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link d-flex justify-content-between align-items-center" th:classappend="${requestURI != null && requestURI.contains('/admin/chat') ? 'active' : ''}" th:href="@{/admin/chat}">
-                            <span><i class="fas fa-headset me-2"></i> Hỗ trợ khách hàng</span>
-                            <span class="badge bg-danger rounded-pill" id="admin-chat-badge" style="display:none;">0</span>
+                        <a class="nav-link" th:classappend="${requestURI != null && requestURI.contains('/admin/chat') ? 'active' : ''}" th:href="@{/admin/chat}">
+                            <i class="fas fa-headset me-2"></i> Hỗ trợ khách hàng
                         </a>
                     </li>
                 </ul>
@@ -79,25 +78,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    function checkAdminUnreadMsgs() {
-        if(window.location.pathname.includes('/admin/chat')) return;
-        fetch('/api/chat/admin/unread-count')
-            .then(res => res.json())
-            .then(count => {
-                var badge = document.getElementById('admin-chat-badge');
-                if(badge) {
-                    badge.innerText = count > 99 ? '99+' : count;
-                    badge.style.display = count > 0 ? 'inline-block' : 'none';
-                }
-            }).catch(e => console.log('Lỗi kiểm tra tin nhắn:', e));
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-        checkAdminUnreadMsgs();
-        setInterval(checkAdminUnreadMsgs, 20000); 
-    });
-</script>
 
 <th:block layout:fragment="page-scripts"></th:block>
 

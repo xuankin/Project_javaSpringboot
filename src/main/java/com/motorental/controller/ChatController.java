@@ -10,7 +10,6 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -62,16 +61,8 @@ public class ChatController {
     // --- API ---
     @GetMapping("/api/chat/users")
     @ResponseBody
-    public ResponseEntity<List<java.util.Map<String, Object>>> getChatUsers() {
-        List<String> users = chatService.getUserList();
-        List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
-        for (String user : users) {
-            java.util.Map<String, Object> map = new java.util.HashMap<>();
-            map.put("username", user);
-            map.put("unreadCount", chatService.getUnreadCountFromUserToAdmin(user));
-            result.add(map);
-        }
-        return ResponseEntity.ok(result);
+    public ResponseEntity<List<String>> getChatUsers() {
+        return ResponseEntity.ok(chatService.getUserList());
     }
 
     @GetMapping("/api/chat/history")
@@ -85,38 +76,5 @@ public class ChatController {
     public ResponseEntity<List<com.motorental.entity.ChatMessage>> getMyChatHistory(Principal principal) {
         if (principal == null) return ResponseEntity.badRequest().build();
         return ResponseEntity.ok(chatService.getHistory(principal.getName()));
-    }
-
-    @GetMapping("/api/chat/unread-count")
-    @ResponseBody
-    public ResponseEntity<Long> getUnreadCount(Principal principal) {
-        if (principal == null) return ResponseEntity.ok(0L);
-        return ResponseEntity.ok(chatService.getUnreadCount(principal.getName()));
-    }
-
-    @GetMapping("/api/chat/admin/unread-count")
-    @ResponseBody
-    public ResponseEntity<Long> getAdminUnreadCount(@RequestParam(value = "user", required = false) String user) {
-        if (user != null) {
-            return ResponseEntity.ok(chatService.getUnreadCountFromUserToAdmin(user));
-        }
-        return ResponseEntity.ok(chatService.getUnreadCount("Admin"));
-    }
-
-    @PostMapping("/api/chat/mark-read")
-    @ResponseBody
-    public ResponseEntity<Void> markAsRead(@RequestParam("sender") String sender, Principal principal) {
-        if (principal == null) return ResponseEntity.badRequest().build();
-        // Nếu client là Admin, nó sẽ gửi principal tên là tài khoản admin, nhưng receiver trong entity gọi là Admin.
-        // Để dễ, ta tách endpoint Admin và User.
-        chatService.markAsRead(principal.getName(), sender);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/api/chat/admin/mark-read")
-    @ResponseBody
-    public ResponseEntity<Void> adminMarkAsRead(@RequestParam("sender") String sender) {
-        chatService.markAsRead("Admin", sender);
-        return ResponseEntity.ok().build();
     }
 }
