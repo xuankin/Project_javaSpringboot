@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}">
+    <!-- Mapbox GL JS -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+</head>
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="card-header bg-white border-0 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0 fw-bold text-primary">
+                                <i class="fas fa-route me-2"></i>Lịch trình di chuyển
+                            </h4>
+                            <form action="/tracking" method="get" class="d-flex gap-2">
+                                <input type="date" name="date" class="form-control" th:value="${selectedDate}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter me-1"></i>Lọc
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <!-- Map Container -->
+                        <div id="map" style="width: 100%; height: 500px; border-radius: 0 0 10px 10px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0 fw-bold">Chi tiết vị trí trong ngày</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Thời gian</th>
+                                    <th>Tọa độ</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="point : ${history}">
+                                    <td th:text="${#temporals.format(point.timestamp, 'HH:mm:ss dd/MM/yyyy')}"></td>
+                                    <td>
+                                        <span class="badge bg-secondary" th:text="${point.latitude + ', ' + point.longitude}"></span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-info" 
+                                                th:onclick="'centerMap(' + ${point.latitude} + ', ' + ${point.longitude} + ')'">
+                                            <i class="fas fa-map-marker-alt"></i> Xem
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(history)}">
+                                    <td colspan="3" class="text-center text-muted py-4">Không có dữ liệu di chuyển trong ngày này.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mapbox GL JS -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const historyData = /*[[${history}]]*/ [];
+        mapboxgl.accessToken = 'YOUR_MAPBOX_API_KEY'; // Vui lòng nhập token Mapbox của bạn tại đây để hiển thị bản đồ
+
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: historyData.length > 0 ? [historyData[0].longitude, historyData[0].latitude] : [105.8342, 21.0278],
+            zoom: 13
+        });
+
+        map.on('load', () => {
+            if (historyData.length > 0) {
+                const coordinates = historyData.map(p => [p.longitude, p.latitude]);
+
+                // Thêm đường đi (Polyline)
+                map.addSource('route', {
+                    'type': 'geojson',
+                    'data': {
+                        'type': 'Feature',
+                        'properties': {},
+                        'geometry': {
+                            'type': 'LineString',
+                            'coordinates': coordinates
+                        }
+                    }
+                });
+
+                map.addLayer({
+                    'id': 'route',
+                    'type': 'line',
+                    'source': 'route',
+                    'layout': {
+                        'line-join': 'round',
+                        'line-cap': 'round'
+                    },
+                    'paint': {
+                        'line-color': '#007bff',
+                        'line-width': 5
+                    }
+                });
+
+                // Thêm Marker cho điểm bắt đầu và kết thúc
+                new mapboxgl.Marker({ color: 'green' })
+                    .setLngLat(coordinates[0])
+                    .setPopup(new mapboxgl.Popup().setHTML('Điểm bắt đầu: ' + historyData[0].timestamp))
+                    .addTo(map);
+
+                if (coordinates.length > 1) {
+                    new mapboxgl.Marker({ color: 'red' })
+                        .setLngLat(coordinates[coordinates.length - 1])
+                        .setPopup(new mapboxgl.Popup().setHTML('Điểm cuối: ' + historyData[historyData.length - 1].timestamp))
+                        .addTo(map);
+                }
+
+                // Fit map to coordinates
+                const bounds = new mapboxgl.LngLatBounds();
+                coordinates.forEach(coord => bounds.extend(coord));
+                map.fitBounds(bounds, { padding: 50 });
+            }
+        });
+
+        function centerMap(lat, lng) {
+            map.flyTo({
+                center: [lng, lat],
+                zoom: 16,
+                essential: true
+            });
+        }
+        /*]]>*/
+    </script>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>
