@@ -36,3 +36,7 @@ build/
 /src/main/resources/static/css/
 /src/main/resources/templates/fragments/
 application.properties
+.env
+uploads/
+/uploads/
+*.log
