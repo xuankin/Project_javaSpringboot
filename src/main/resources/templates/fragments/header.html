@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<nav th:fragment="header" class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav th:fragment="header" class="navbar navbar-expand-lg navbar-light shadow-sm" style="background-color: #F0E6F7 !important;">
     <div class="container">
         <a class="navbar-brand fw-bold" href="/"><i class="fas fa-motorcycle me-2"></i>MotoRental</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -10,6 +10,17 @@
             <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item"><a class="nav-link" href="/">Trang chủ</a></li>
                 <li class="nav-item"><a class="nav-link" href="/vehicles">Thuê xe</a></li>
+
+                <li sec:authorize="isAuthenticated() and !hasRole('ADMIN')" class="nav-item">
+                    <a class="nav-link" href="/tracking"><i class="fas fa-route me-1"></i>Lịch trình</a>
+                </li>
+
+                <li sec:authorize="isAuthenticated() and !hasRole('ADMIN')" class="nav-item">
+                    <a class="nav-link" href="/orders/my-orders"><i class="fas fa-list-ul me-1"></i>Đơn hàng</a>
+                </li>
+                <li sec:authorize="isAuthenticated() and !hasRole('ADMIN')" class="nav-item">
+                    <a class="nav-link" href="/cart"><i class="fas fa-shopping-cart me-1"></i>Giỏ hàng</a>
+                </li>
 
                 <!-- Hiện nút Chat chỉ khi user đã đăng nhập và không phải admin -->
                 <li sec:authorize="isAuthenticated() and !hasRole('ADMIN')" class="nav-item">
@@ -49,9 +60,27 @@
                 }
             }).catch(e => console.log('Không thể lấy tin nhắn chưa đọc:', e));
     }
+    function updateMyRealtimeLocation() {
+        if (!("geolocation" in navigator)) return;
+        navigator.geolocation.getCurrentPosition(function(position) {
+            fetch('/api/tracking/update-location', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                })
+            }).catch(e => console.error('Tracking update failed:', e));
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         checkUnreadMsgs();
         setInterval(checkUnreadMsgs, 15000); 
+
+        // Update location every 2 minutes
+        updateMyRealtimeLocation();
+        setInterval(updateMyRealtimeLocation, 120000); 
     });
 </script>
 </html>
