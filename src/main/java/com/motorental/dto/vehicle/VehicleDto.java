@@ -37,4 +37,6 @@ public class VehicleDto {
     private String primaryImageUrl; // URL ảnh đại diện
     private Double averageRating;   // Điểm đánh giá trung bình
     private Integer rentalCount;    // Số lần đã thuê
+    private Double latitude;        // Vĩ độ
+    private Double longitude;       // Kinh độ
 }

@@ -28,4 +28,6 @@ public class VehicleDetailDto {
     private List<String> imageUrls; // Danh sách tất cả ảnh
     private String primaryImageUrl; // [FIX] Thêm trường này
     private Double averageRating;
+    private Double latitude;
+    private Double longitude;
 }

@@ -5,7 +5,9 @@ import com.motorental.dto.vehicle.VehicleDto;
 import com.motorental.service.VehicleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -26,9 +28,12 @@ public class AdminVehicleController {
     // LIST
     // =========================
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("vehicles",
-                vehicleService.searchVehicles("", null, Pageable.unpaged()).getContent());
+    public String list(Model model, @PageableDefault(size = 10) Pageable pageable) {
+        Page<VehicleDto> vehiclePage = vehicleService.searchVehicles("", null, pageable);
+        model.addAttribute("vehicles", vehiclePage.getContent());
+        model.addAttribute("currentPage", vehiclePage.getNumber());
+        model.addAttribute("totalPages", vehiclePage.getTotalPages());
+        model.addAttribute("totalItems", vehiclePage.getTotalElements());
         return "admin/vehicles/list";
     }
 
@@ -65,7 +70,7 @@ public class AdminVehicleController {
     // EDIT
     // =========================
     @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable Long id, Model model) {
+    public String editForm(@PathVariable("id") Long id, Model model) {
         VehicleDetailDto detail = vehicleService.getVehicleDetail(id);
 
         // vehicle object dùng để bind form (detail có đủ info để fill form)
@@ -81,7 +86,7 @@ public class AdminVehicleController {
     }
 
     @PostMapping("/edit/{id}")
-    public String update(@PathVariable Long id,
+    public String update(@PathVariable("id") Long id,
                          @Valid @ModelAttribute("vehicle") VehicleDto dto,
                          BindingResult result,
                          @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
@@ -111,7 +116,7 @@ public class AdminVehicleController {
     // DELETE
     // =========================
     @PostMapping("/delete/{id}")
-    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
         try {
             vehicleService.deleteVehicle(id);
             redirectAttributes.addFlashAttribute("success", "Đã xóa xe.");

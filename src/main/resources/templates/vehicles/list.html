@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head}"></head>
+<head>
+    <th:block th:replace="~{fragments/head :: head}"></th:block>
+</head>
 <body class="bg-light">
 <nav th:replace="~{fragments/header :: header}"></nav>
 
@@ -118,12 +120,27 @@
                                         <small class="text-muted">/ngày</small>
                                     </div>
                                 </div>
-
-                                <div class="d-grid">
-                                    <a th:href="@{/vehicles/detail/{id}(id=${vehicle.id})}"
-                                       class="btn btn-outline-primary rounded-pill">
-                                        Xem chi tiết <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-6">
+                                        <form th:action="@{/cart/add}" method="post">
+                                            <input type="hidden" name="vehicleId" th:value="${vehicle.id}">
+                                            <input type="hidden" name="startDate" th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
+                                            <!-- Mặc định đặt từ hnay đến mai để pass validate -->
+                                            <input type="hidden" name="endDate" th:value="${#dates.format(#dates.create(#dates.year(#dates.createNow()), #dates.month(#dates.createNow()), #dates.day(#dates.createNow()) + 1), 'yyyy-MM-dd')}">
+                                            
+                                            <input type="hidden" name="redirect" value="list">
+                                            <button type="submit" class="btn btn-outline-success w-100 h-100 d-flex justify-content-center align-items-center rounded-pill"
+                                                    th:disabled="${vehicle.status != 'AVAILABLE'}">
+                                                <i class="fas fa-cart-plus me-1"></i> Giỏ hàng
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <div class="col-6">
+                                        <a th:href="@{/vehicles/detail/{id}(id=${vehicle.id})}"
+                                           class="btn btn-outline-primary w-100 h-100 d-flex justify-content-center align-items-center rounded-pill">
+                                            <i class="fas fa-eye me-1"></i> Chi tiết
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>

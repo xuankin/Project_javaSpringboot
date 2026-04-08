@@ -64,6 +64,12 @@ public class Vehicle extends BaseEntity {
     @Builder.Default
     private Integer rentalCount = 0;
 
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
     // --- Relationships ---
 
     // Quan trọng: orphanRemoval = true giúp xóa ảnh cũ khi update

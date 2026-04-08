@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout_admin}">
+<head>
+    <title>Bản đồ theo dõi toàn bộ xe</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #adminMap { height: 750px; width: 100%; border-radius: 8px; }
+        .vehicle-popup img { width: 100%; height: auto; border-radius: 4px; margin-top: 5px; }
+        .status-badge { font-size: 0.8rem; padding: 2px 6px; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+        <h2><i class="fas fa-globe-asia text-primary"></i> Bản đồ theo dõi xe thời gian thực</h2>
+        <div>
+            <span class="badge bg-success me-2">Sẵn sàng</span>
+            <span class="badge bg-warning me-2">Đang thuê</span>
+            <span class="badge bg-secondary">Bảo trì/Khác</span>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body p-0">
+            <div id="adminMap"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', function() {
+            const vehicles = /*[[${vehicles}]]*/ [];
+            const map = L.map('adminMap').setView([21.0285, 105.8542], 12);
+            const markerMap = new Map();
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; Leaflet - OpenStreetMap'
+            }).addTo(map);
+
+            function addOrUpdateMarker(v) {
+                if (!v.latitude || !v.longitude) return;
+
+                const color = v.status === 'AVAILABLE' ? 'green' : (v.status === 'RENTED' ? 'orange' : 'gray');
+                const icon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                });
+
+                const popupContent = `
+                    <div class="vehicle-popup" style="width: 150px;">
+                        <strong>${v.name}</strong><br>
+                        <small>${v.licensePlate}</small><br>
+                        <span class="badge bg-${v.status === 'AVAILABLE' ? 'success' : (v.status === 'RENTED' ? 'warning' : 'secondary')} status-badge">${v.status}</span>
+                        ${v.primaryImageUrl ? `<img src="${v.primaryImageUrl}">` : ''}
+                        <div class="mt-2 text-center">
+                            <a href="/admin/vehicles/edit/${v.id}" class="btn btn-sm btn-primary w-100">Chi tiết</a>
+                        </div>
+                    </div>
+                `;
+
+                if (markerMap.has(v.id)) {
+                    const marker = markerMap.get(v.id);
+                    marker.setLatLng([v.latitude, v.longitude]);
+                } else {
+                    const marker = L.marker([v.latitude, v.longitude], { icon: icon })
+                        .addTo(map)
+                        .bindPopup(popupContent);
+                    markerMap.set(v.id, marker);
+                }
+            }
+
+            // Init
+            vehicles.forEach(addOrUpdateMarker);
+            if (markerMap.size > 0) {
+                const group = new L.featureGroup(Array.from(markerMap.values()));
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+
+            // Real-time update (Polling ALL vehicles at once)
+            setInterval(() => {
+                fetch('/api/vehicles/all-locations')
+                    .then(res => res.json())
+                    .then(dataList => {
+                        dataList.forEach(v => {
+                            if (v.lat && v.lng) {
+                                if (markerMap.has(v.id)) {
+                                    markerMap.get(v.id).setLatLng([v.lat, v.lng]);
+                                    // Cập nhật popup nếu đang mở
+                                    const marker = markerMap.get(v.id);
+                                    if (marker.getPopup() && marker.getPopup().isOpen()) {
+                                        // (Optional) Update popup content if needed
+                                    }
+                                } else {
+                                    addOrUpdateMarker(v);
+                                }
+                            }
+                        });
+                    });
+            }, 5000);
+        });
+        /*]]>*/
+    </script>
+</div>
+</body>
+</html>

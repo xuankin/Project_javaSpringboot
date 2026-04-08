@@ -55,7 +55,8 @@ public class VehicleService {
     }
 
     public List<VehicleDto> getPopularVehicles() {
-        return vehicleRepository.findTopPopularVehicles(Pageable.ofSize(6)).stream()
+        // Tăng từ 6 lên 12 xe để hiển thị được nhiều xe mới hơn tại trang chủ
+        return vehicleRepository.findTopPopularVehicles(Pageable.ofSize(12)).stream()
                 .map(this::mapToDto).collect(Collectors.toList());
     }
 
@@ -77,6 +78,12 @@ public class VehicleService {
         }
 
         Vehicle vehicle = modelMapper.map(dto, Vehicle.class);
+        
+        // Luôn gán vị trí mặc định cho xe mới để xuất hiện trên bản đồ
+        // Ví dụ: Tọa độ Hồ Gươm, Hà Nội (21.0285, 105.8542)
+        if (vehicle.getLatitude() == null) vehicle.setLatitude(21.0285);
+        if (vehicle.getLongitude() == null) vehicle.setLongitude(105.8542);
+        
         Vehicle saved = vehicleRepository.save(vehicle);
         if (hasNewImages(imageFiles)) {
             saveImages(saved, imageFiles, true);
@@ -102,6 +109,8 @@ public class VehicleService {
         vehicle.setModel(dto.getModel());
         vehicle.setYear(dto.getYear());
         vehicle.setColor(dto.getColor());
+        vehicle.setLatitude(dto.getLatitude());
+        vehicle.setLongitude(dto.getLongitude());
 
         if (dto.getStatus() != null && !dto.getStatus().isBlank()) {
             vehicle.setStatus(Vehicle.VehicleStatus.valueOf(dto.getStatus()));
@@ -168,12 +177,20 @@ public class VehicleService {
     }
 
     private VehicleDto mapToDto(Vehicle vehicle) {
+        // Đảm bảo xe luôn có tọa độ để hiện lên bản đồ (Tránh rớt xuống hồ)
+        if (vehicle.getLatitude() == null) vehicle.setLatitude(10.7289);
+        if (vehicle.getLongitude() == null) vehicle.setLongitude(106.7217);
+        
         VehicleDto dto = modelMapper.map(vehicle, VehicleDto.class);
         dto.setPrimaryImageUrl(getPrimaryImageUrl(vehicle));
         return dto;
     }
 
     private VehicleDetailDto mapToDetailDto(Vehicle vehicle) {
+        // Đảm bảo xe luôn có tọa độ để hiện lên bản đồ
+        if (vehicle.getLatitude() == null) vehicle.setLatitude(10.7289);
+        if (vehicle.getLongitude() == null) vehicle.setLongitude(106.7217);
+
         VehicleDetailDto dto = modelMapper.map(vehicle, VehicleDetailDto.class);
         List<String> images = vehicle.getImages().stream().map(VehicleImage::getImageUrl).collect(Collectors.toList());
         dto.setImageUrls(images);

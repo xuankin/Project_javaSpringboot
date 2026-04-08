@@ -10,7 +10,6 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -103,7 +102,7 @@ public class ChatController {
         return ResponseEntity.ok(chatService.getUnreadCount("Admin"));
     }
 
-    @PostMapping("/api/chat/mark-read")
+    @GetMapping("/api/chat/mark-read")
     @ResponseBody
     public ResponseEntity<Void> markAsRead(@RequestParam("sender") String sender, Principal principal) {
         if (principal == null) return ResponseEntity.badRequest().build();
@@ -113,7 +112,7 @@ public class ChatController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/api/chat/admin/mark-read")
+    @GetMapping("/api/chat/admin/mark-read")
     @ResponseBody
     public ResponseEntity<Void> adminMarkAsRead(@RequestParam("sender") String sender) {
         chatService.markAsRead("Admin", sender);

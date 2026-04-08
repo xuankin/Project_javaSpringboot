@@ -29,7 +29,7 @@ public class AdminPaymentController {
 
     // --- Endpoint xác nhận thanh toán ---
     @PostMapping("/confirm/{id}")
-    public String confirmPayment(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String confirmPayment(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
         try {
             paymentService.confirmPayment(id);
             redirectAttributes.addFlashAttribute("success", "Đã xác nhận thanh toán thành công!");

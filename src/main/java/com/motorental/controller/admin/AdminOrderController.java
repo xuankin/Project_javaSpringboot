@@ -21,7 +21,7 @@ public class AdminOrderController {
     }
 
     @GetMapping("/detail/{id}")
-    public String viewDetail(@PathVariable Long id, Model model) {
+    public String viewDetail(@PathVariable("id") Long id, Model model) {
         try {
             model.addAttribute("order", orderService.getOrderById(id));
             return "admin/orders/detail";
@@ -31,7 +31,7 @@ public class AdminOrderController {
     }
 
     @PostMapping("/{id}/update-status")
-    public String updateStatus(@PathVariable Long id,
+    public String updateStatus(@PathVariable("id") Long id,
                                @RequestParam("status") String status,
                                RedirectAttributes redirectAttributes) {
         try {

@@ -93,7 +93,7 @@ public class OrderController {
     }
 
     @GetMapping("/detail/{id}")
-    public String viewOrderDetail(@PathVariable Long id, Model model, Principal principal) {
+    public String viewOrderDetail(@PathVariable("id") Long id, Model model, Principal principal) {
         if (principal == null) return "redirect:/login";
         try {
             OrderDto order = orderService.getOrderById(id);
@@ -111,7 +111,7 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/cancel")
-    public String cancelOrder(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
+    public String cancelOrder(@PathVariable("id") Long id, Principal principal, RedirectAttributes redirectAttributes) {
         if (principal == null) return "redirect:/login";
         try {
             String userId = userService.findByUsername(principal.getName()).getId();

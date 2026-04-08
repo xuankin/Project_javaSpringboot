@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -26,8 +26,8 @@ public class OrderCleanupService {
     public void scanAndCancelOverdueOrders() {
         logger.info("--- Bắt đầu quét các đơn hàng treo (Pending) quá hạn ---");
 
-        // Logic: Nếu (Ngày bắt đầu thuê) < (Hiện tại - 24 giờ) => Quá hạn nhận xe 1 ngày
-        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(24);
+        // Logic: Nếu (Ngày bắt đầu thuê) < (Hôm nay - 1 ngày) => Quá hạn nhận xe 1 ngày
+        LocalDate cutoffTime = LocalDate.now().minusDays(1);
 
         List<RentalOrder> overdueOrders = orderRepository.findOverduePendingOrders(cutoffTime);
 
