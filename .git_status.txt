@@ -1,0 +1,60 @@
+On branch feat/user-location-tracking
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   pom.xml
+	modified:   src/main/java/com/motorental/controller/CartController.java
+	modified:   src/main/java/com/motorental/controller/ChatController.java
+	modified:   src/main/java/com/motorental/controller/HomeController.java
+	modified:   src/main/java/com/motorental/controller/OrderController.java
+	modified:   src/main/java/com/motorental/controller/PaymentController.java
+	modified:   src/main/java/com/motorental/controller/VehicleController.java
+	modified:   src/main/java/com/motorental/controller/admin/AdminDashboardController.java
+	modified:   src/main/java/com/motorental/controller/admin/AdminFeedbackController.java
+	modified:   src/main/java/com/motorental/controller/admin/AdminOrderController.java
+	modified:   src/main/java/com/motorental/controller/admin/AdminPaymentController.java
+	modified:   src/main/java/com/motorental/controller/admin/AdminUserController.java
+	modified:   src/main/java/com/motorental/controller/admin/AdminVehicleController.java
+	modified:   src/main/java/com/motorental/dto/order/CreateOrderDto.java
+	modified:   src/main/java/com/motorental/dto/order/OrderDetailDto.java
+	modified:   src/main/java/com/motorental/dto/vehicle/VehicleDetailDto.java
+	modified:   src/main/java/com/motorental/dto/vehicle/VehicleDto.java
+	modified:   src/main/java/com/motorental/entity/RentalOrder.java
+	modified:   src/main/java/com/motorental/entity/Vehicle.java
+	modified:   src/main/java/com/motorental/repository/RentalOrderRepository.java
+	modified:   src/main/java/com/motorental/service/OrderCleanupService.java
+	modified:   src/main/java/com/motorental/service/OrderService.java
+	modified:   src/main/java/com/motorental/service/VehicleService.java
+	modified:   src/main/resources/templates/admin/chat/index.html
+	modified:   src/main/resources/templates/admin/layout_admin.html
+	modified:   src/main/resources/templates/admin/vehicles/list.html
+	modified:   src/main/resources/templates/branches.html
+	modified:   src/main/resources/templates/cart/view.html
+	modified:   src/main/resources/templates/index.html
+	modified:   src/main/resources/templates/orders/detail.html
+	modified:   src/main/resources/templates/user/chat.html
+	modified:   src/main/resources/templates/vehicles/list.html
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.env
+	.git_status.txt
+	et --hard c0e36a2
+	run6.log
+	src/main/java/com/motorental/controller/VehicleApiController.java
+	src/main/java/com/motorental/entity/VehicleLocationHistory.java
+	src/main/java/com/motorental/repository/VehicleLocationHistoryRepository.java
+	src/main/java/com/motorental/service/GpsSimulationService.java
+	src/main/resources/static/
+	src/main/resources/templates/admin/map.html
+	uploads/36b91c7c-c8e5-4f06-8404-7f45778d70d2_eakKbIWzVlsGm0Q5p0OP.png
+	uploads/67eeba4d-9f0e-4271-b24a-ebaed8e11c74_sHEGFzxAvSJcDng7Dhci.png
+	uploads/70879e16-565f-42b9-a302-0f4e6d6fdb09_sYTCNfgI5E0JUJ8BCTQ3.png
+	uploads/8cb3b27b-56b8-4fbf-bc70-187be8067793_OdEB73r6Io8GOwX51wTV.png
+	uploads/a2998a0f-5bf3-4101-a505-b937ceba321a_z21e1joEbVGWkoGI5nux.png
+	uploads/b3ac5889-0aaf-4a92-a7e1-92ba0ac0830e_3mJZ9NV7sBmWVJalt796.png
+	uploads/b60d548c-dd68-4752-b138-eeb282656900_xe_honda_vision12_e9ed84eeaf724cbb8311a49b9f547bac_master.png
+	uploads/cc6f3cdb-1a7e-4a9a-801c-255f8e3c063b_lRSLOVgUWsWtYYKw0FSP.png
+	uploads/fd145011-0be0-4c89-9d36-45663587c2f6_JMiCn0FrYtD1UcgtTMo4.png
+
+no changes added to commit (use "git add" and/or "git commit -a")

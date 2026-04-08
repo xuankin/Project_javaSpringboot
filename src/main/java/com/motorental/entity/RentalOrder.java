@@ -35,13 +35,19 @@ public class RentalOrder extends BaseEntity {
     @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
 
-    // --- THÊM TRƯỜNG MỚI: NƠI NHẬN XE ---
     @Column(name = "pickup_location", length = 255)
     private String pickupLocation;
-    // -------------------------------------
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    // --- Discount Fields ---
+    @Column(name = "discount_code", length = 50)
+    private String discountCode;
+
+    @Column(name = "discount_amount", precision = 18, scale = 2)
+    private BigDecimal discountAmount;
+    // -----------------------
 
     // --- Relationships ---
 

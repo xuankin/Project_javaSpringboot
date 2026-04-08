@@ -22,4 +22,6 @@ public class OrderDetailDto {
     private Integer rentalDays;
     private BigDecimal pricePerDay;
     private BigDecimal totalPrice;
-}
+    private Double latitude;
+    private Double longitude;
+}

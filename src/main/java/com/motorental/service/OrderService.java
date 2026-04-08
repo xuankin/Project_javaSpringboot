@@ -207,6 +207,8 @@ public class OrderService {
             OrderDetailDto dDto = modelMapper.map(d, OrderDetailDto.class);
             dDto.setVehicleName(d.getVehicle().getName());
             dDto.setVehicleId(d.getVehicle().getId());
+            dDto.setLatitude(d.getVehicle().getLatitude());
+            dDto.setLongitude(d.getVehicle().getLongitude());
             return dDto;
         }).collect(Collectors.toList());
         dto.setOrderDetails(details);

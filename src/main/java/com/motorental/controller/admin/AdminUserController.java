@@ -25,7 +25,7 @@ public class AdminUserController {
 
     // --- MỚI: Endpoint xử lý đánh cờ Scam ---
     @PostMapping("/toggle-scam/{id}")
-    public String toggleScam(@PathVariable String id, RedirectAttributes redirectAttributes) {
+    public String toggleScam(@PathVariable("id") String id, RedirectAttributes redirectAttributes) {
         try {
             userService.toggleScamStatus(id);
             redirectAttributes.addFlashAttribute("success", "Đã cập nhật trạng thái cảnh báo người dùng.");
@@ -36,7 +36,7 @@ public class AdminUserController {
     }
 
     @PostMapping("/delete/{id}")
-    public String delete(@PathVariable String id, RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable("id") String id, RedirectAttributes redirectAttributes) {
         try {
             userService.deleteUser(id);
             redirectAttributes.addFlashAttribute("success", "Đã xóa người dùng thành công.");

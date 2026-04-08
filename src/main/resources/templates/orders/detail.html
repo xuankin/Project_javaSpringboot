@@ -48,9 +48,199 @@
         </div>
     </div>
 
-    <form th:if="${order.status == 'PENDING'}" th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post" class="text-end">
-        <button class="btn btn-outline-danger" onclick="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?')">Hủy đơn hàng</button>
-    </form>
+<div class="card shadow-sm mb-4" th:if="${not #lists.isEmpty(order.orderDetails)}">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-satellite-dish"></i> Hệ thống định vị GPS</span>
+        <div class="d-flex align-items-center">
+            <div class="form-check form-switch me-3">
+                <input class="form-check-input" type="checkbox" id="syncGpsSwitch">
+                <label class="form-check-label text-white" for="syncGpsSwitch" style="font-size: 0.8rem;">Gửi GPS từ thiết bị này</label>
+            </div>
+            <span id="currentAddress" class="badge bg-light text-dark me-2" style="font-size: 0.85rem; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Đang xác định địa chỉ...</span>
+            <div id="gpsIndicator" class="badge bg-success" style="display: none;">
+                <i class="fas fa-signal-stream"></i> Online
+            </div>
+        </div>
+    </div>
+    <style>
+        #map { height: 600px; width: 100%; position: relative; }
+        .locate-btn {
+            position: absolute; bottom: 20px; right: 20px; z-index: 1000;
+            background: white; border: none; width: 45px; height: 45px;
+            border-radius: 5px; box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; color: #007bff; transition: all 0.2s;
+        }
+        .locate-btn:hover { background: #f8f9fa; color: #0056b3; }
+    </style>
+    <div class="card-body p-0" style="position: relative;">
+        <div id="map"></div>
+        <button id="locateBtn" class="locate-btn" title="Vị trí của tôi">
+            <i class="fas fa-crosshairs"></i>
+        </button>
+    </div>
 </div>
+
+<form th:if="${order.status == 'PENDING'}" th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post" class="text-end mb-5">
+    <button class="btn btn-outline-danger" onclick="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?')">Hủy đơn hàng</button>
+</form>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        const details = /*[[${order.orderDetails}]]*/ [];
+        const markerMap = new Map();
+        const polylineMap = new Map();
+        const map = L.map('map').setView([21.0285, 105.8542], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; Leaflet'
+        }).addTo(map);
+
+        // Khởi tạo marker & polyline ban đầu
+        details.forEach(d => {
+            const polyline = L.polyline([], { color: 'blue', weight: 4, opacity: 0.6 }).addTo(map);
+            polylineMap.set(d.vehicleId, polyline);
+
+            if (d.latitude && d.longitude) {
+                const marker = L.marker([d.latitude, d.longitude])
+                    .addTo(map)
+                    .bindPopup(`<b>${d.vehicleName}</b><br>Đang theo dõi...`);
+                markerMap.set(d.vehicleId, marker);
+            }
+        });
+
+        const gpsIndicator = document.getElementById('gpsIndicator');
+        const addressSpan = document.getElementById('currentAddress');
+        let lastAddressUpdate = 0;
+
+        async function fetchAddress(lat, lon) {
+            if (!lat || !lon || (lat === 0 && lon === 0)) return;
+
+            // Chỉ cập nhật địa chỉ mỗi 10 giây một lần để tránh spam API
+            const now = Date.now();
+            if (now - lastAddressUpdate < 10000) return;
+            
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=vi`);
+                const data = await res.json();
+                if (data && data.display_name) {
+                    addressSpan.innerText = data.display_name;
+                    addressSpan.title = data.display_name; // Hiện đầy đủ khi hover
+                    lastAddressUpdate = now;
+                } else {
+                    addressSpan.innerText = "Không tìm thấy địa chỉ";
+                }
+            } catch (e) {
+                console.error("Geocoding error:", e);
+                // Nếu bị giới hạn băng thông thì vẫn giữ nguyên địa chỉ cũ hoặc hiện thông báo
+                if (addressSpan.innerText === "Đang xác định địa chỉ...") {
+                    addressSpan.innerText = "Đang lấy địa chỉ...";
+                }
+            }
+        }
+
+        function updateLocations() {
+            gpsIndicator.style.display = 'inline-block';
+            details.forEach(d => {
+                fetch(`/api/vehicles/${d.vehicleId}/location`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.lat !== undefined && data.lng !== undefined) {
+                            const newPos = [data.lat, data.lng];
+                            
+                            // Cập nhật Marker
+                            if (markerMap.has(d.vehicleId)) {
+                                markerMap.get(d.vehicleId).setLatLng(newPos);
+                            } else {
+                                const m = L.marker(newPos).addTo(map).bindPopup(`<b>${d.vehicleName}</b>`);
+                                markerMap.set(d.vehicleId, m);
+                            }
+
+                            // Giải mã tọa độ ra địa chỉ
+                            fetchAddress(data.lat, data.lng);
+
+                            // Cập nhật Polyline (Lộ trình)
+                            if (data.history && polylineMap.has(d.vehicleId)) {
+                                const path = data.history.map(h => [h.lat, h.lng]).reverse();
+                                polylineMap.get(d.vehicleId).setLatLngs(path);
+                            }
+                        }
+                    })
+                    .finally(() => { 
+                        setTimeout(() => { gpsIndicator.style.display = 'none'; }, 800); 
+                    });
+            });
+        }
+        // --- LOGIC GỬI GPS TỪ THIẾT BỊ THỰC TẾ ---
+        const syncSwitch = document.getElementById('syncGpsSwitch');
+        let watchId = null;
+
+        syncSwitch.addEventListener('change', function() {
+            if (this.checked) {
+                if ("geolocation" in navigator) {
+                    watchId = navigator.geolocation.watchPosition(
+                        (pos) => {
+                            const { latitude, longitude } = pos.coords;
+                            // Gửi vị trí thực của bạn cho chiếc xe đầu tiên trong đơn
+                            if (details.length > 0) {
+                                fetch(`/api/vehicles/${details[0].vehicleId}/location`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ lat: latitude, lng: longitude })
+                                });
+                            }
+                        },
+                        (err) => {
+                            alert("Không thể lấy GPS: " + err.message);
+                            this.checked = false;
+                        },
+                        { enableHighAccuracy: true }
+                    );
+                } else {
+                    alert("Trình duyệt không hỗ trợ GPS.");
+                    this.checked = false;
+                }
+            } else {
+                if (watchId !== null) {
+                    navigator.geolocation.clearWatch(watchId);
+                    watchId = null;
+                }
+            }
+        });
+
+        // --- NÚT ĐỊNH VỊ VỊ TRÍ CỦA TÔI ---
+        const locateBtn = document.getElementById('locateBtn');
+        let userMarker = null;
+
+        locateBtn.addEventListener('click', function() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    map.setView([latitude, longitude], 16);
+                    
+                    if (userMarker) {
+                        userMarker.setLatLng([latitude, longitude]);
+                    } else {
+                        // Marker màu xanh dương để phân biệt với xe
+                        userMarker = L.circleMarker([latitude, longitude], {
+                            radius: 8, fillOpacity: 1, color: 'white', weight: 2, fillColor: '#007bff'
+                        }).addTo(map).bindPopup("Vị trí của bạn");
+                    }
+                }, (err) => {
+                    alert("Lỗi: " + err.message);
+                });
+            }
+        });
+
+        updateLocations(); // Chạy ngay lần đầu
+        const pollInterval = setInterval(updateLocations, 3000);
+
+        // Chú thích: Xe sẽ tự động di chuyển do máy chủ (GpsSimulationService) đang giả lập GPS trên xe.
+    });
+    /*]]>*/
+</script>
 </body>
 </html>

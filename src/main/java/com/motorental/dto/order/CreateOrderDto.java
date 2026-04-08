@@ -15,4 +15,7 @@ public class CreateOrderDto {
 
     // Thêm trường này để nhận phương thức thanh toán từ form
     private String paymentMethod;
+
+    // Field for the discount code
+    private String discountCode;
 }

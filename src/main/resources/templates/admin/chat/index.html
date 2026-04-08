@@ -162,7 +162,7 @@
         }
 
         function markUserAsReadInDB(username) {
-            fetch('/api/chat/admin/mark-read?sender=' + username, { method: 'POST' })
+            fetch('/api/chat/admin/mark-read?sender=' + username)
                 .catch(err => console.error("Lỗi khi mark as read: ", err));
         }
 

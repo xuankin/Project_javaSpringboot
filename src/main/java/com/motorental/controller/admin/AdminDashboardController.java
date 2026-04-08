@@ -14,17 +14,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class AdminDashboardController {
 
     private final DashboardService dashboardService;
-    private final OrderService orderService; // Dùng để lấy đơn hàng gần đây
+    private final OrderService orderService;
+    private final com.motorental.service.VehicleService vehicleService;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
-        // Truyền DTO stats vào model để view (dashboard.html) sử dụng
         model.addAttribute("stats", dashboardService.getDashboardStats());
-
-        // Truyền danh sách đơn hàng (Sử dụng hàm có sẵn của OrderService)
-        // Nếu bạn chưa có hàm getRecentOrders, có thể dùng getAllOrders tạm thời
         model.addAttribute("recentOrders", orderService.getAllOrders());
-
         return "admin/dashboard";
+    }
+
+    @GetMapping("/map")
+    public String vehicleMap(Model model) {
+        model.addAttribute("vehicles", 
+            vehicleService.searchVehiclesDetail("", null, null, org.springframework.data.domain.Pageable.unpaged()).getContent());
+        return "admin/map";
     }
 }

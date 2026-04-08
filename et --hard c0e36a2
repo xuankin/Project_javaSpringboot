@@ -1,0 +1,15 @@
+[33m18a5923[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfix/vnpay[m[33m, [m[1;31morigin/fix/vnpay[m[33m)[m Cập nhật .gitignore, ngừng theo dõi file log và bảo mật .env
+[33m257f046[m Xóa file .env khỏi Git và cập nhật .gitignore
+[33m97522ec[m fix: Xử lý lỗi VNPay không điều hướng do th:field ghi đè radio button
+[33m0c9ec96[m[33m ([m[1;31morigin/fix/emailservice[m[33m, [m[1;32mfix/emailservice[m[33m)[m fix: Cập nhật giao diện Email bằng Bootstrap 5, sửa vòng lặp đăng nhập vô hạn và bug LocalDate trong OrderCleanup
+[33mc0e36a2[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m complete final
+[33mbe8cdeb[m Complete
+[33m9bf7625[m add chat
+[33m7e3c960[m Them vnpay,ggmap
+[33mfedbc38[m kin fix and add map , mail
+[33m82693f8[m Merge pull request #1 from xuankin/feat/user
+[33mca3a639[m[33m ([m[1;31morigin/feat/user[m[33m)[m Merge branch 'main' into feat/user
+[33mf8e47ef[m Long dep trai nhat the gioi
+[33me8346f8[m initial commit
+[33m310efd7[m CRUD vehicle
+[33m792d6b0[m first commit

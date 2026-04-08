@@ -21,7 +21,7 @@ public class AdminFeedbackController {
     }
 
     @PostMapping("/delete/{id}")
-    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
         try {
             feedbackService.deleteFeedback(id, null);
             redirectAttributes.addFlashAttribute("success", "Đã xóa đánh giá.");

@@ -26,13 +26,13 @@ public class PaymentController {
     }
 
     @GetMapping("/payments/create/{orderId}")
-    public String showPaymentPage(@PathVariable Long orderId, Model model) {
+    public String showPaymentPage(@PathVariable("orderId") Long orderId, Model model) {
         model.addAttribute("orderId", orderId);
         return "payments/create";
     }
 
     @PostMapping("/payments/cash/{orderId}")
-    public String payCash(@PathVariable Long orderId, RedirectAttributes redirectAttributes) {
+    public String payCash(@PathVariable("orderId") Long orderId, RedirectAttributes redirectAttributes) {
         try {
             paymentService.createCashPayment(orderId);
             redirectAttributes.addFlashAttribute("success", "Đã gửi yêu cầu thanh toán tiền mặt.");
@@ -46,7 +46,7 @@ public class PaymentController {
 
     // --- [ĐÃ SỬA] Hàm xử lý VNPay: Hỗ trợ cả GET (từ redirect) và POST ---
     @RequestMapping(value = "/payments/vnpay/{orderId}", method = {RequestMethod.GET, RequestMethod.POST})
-    public String payVnPay(@PathVariable Long orderId,
+    public String payVnPay(@PathVariable("orderId") Long orderId,
                            HttpServletRequest request,
                            RedirectAttributes redirectAttributes) {
         try {

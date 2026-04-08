@@ -45,7 +45,7 @@
                 <form th:action="@{/cart/clear}" method="post" class="d-inline">
                     <button type="submit" class="btn btn-outline-secondary me-2">Xóa hết</button>
                 </form>
-                <a href="/checkout" class="btn btn-success btn-lg">Tiến hành đặt xe</a>
+                <a th:href="@{/orders/checkout}" class="btn btn-success btn-lg">Tiến hành đặt xe</a>
             </div>
         </div>
     </div>

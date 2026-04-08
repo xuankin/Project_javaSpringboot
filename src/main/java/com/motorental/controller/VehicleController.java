@@ -28,9 +28,9 @@ public class VehicleController {
     // Trang danh sách xe (Đã nâng cấp)
     @GetMapping
     public String listVehicles(
-            @RequestParam(required = false, defaultValue = "") String keyword,
-            @RequestParam(required = false) String brand,
-            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(value = "brand", required = false) String brand,
+            @RequestParam(value = "maxPrice", required = false) Double maxPrice,
             @PageableDefault(size = 9) Pageable pageable,
             Model model) {
 
@@ -56,7 +56,7 @@ public class VehicleController {
 
     // Trang chi tiết xe (Giữ nguyên)
     @GetMapping("/detail/{id}")
-    public String vehicleDetail(@PathVariable Long id, Model model) {
+    public String vehicleDetail(@PathVariable("id") Long id, Model model) {
         VehicleDetailDto vehicle = vehicleService.getVehicleDetail(id);
         model.addAttribute("vehicle", vehicle);
 

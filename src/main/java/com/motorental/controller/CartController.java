@@ -43,6 +43,11 @@ public class CartController {
             if ("checkout".equals(redirect)) {
                 return "redirect:/orders/checkout";
             }
+            
+            if ("list".equals(redirect)) {
+                redirectAttributes.addFlashAttribute("success", "Đã thêm vào giỏ hàng!");
+                return "redirect:/vehicles";
+            }
 
             redirectAttributes.addFlashAttribute("success", "Đã thêm vào giỏ hàng!");
             return "redirect:/vehicles/detail/" + dto.getVehicleId();
@@ -56,7 +61,7 @@ public class CartController {
 
     @PostMapping("/remove/{itemId}")
     public String removeItem(@AuthenticationPrincipal UserDetails userDetails,
-                             @PathVariable Long itemId,
+                             @PathVariable("itemId") Long itemId,
                              RedirectAttributes redirectAttributes) {
         try {
             String userId = getUserId(userDetails);

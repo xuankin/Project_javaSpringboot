@@ -3,9 +3,12 @@ package com.motorental.controller;
 import com.motorental.service.VehicleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequiredArgsConstructor
@@ -18,12 +21,17 @@ public class HomeController {
     private String mapboxToken;
 
     @GetMapping("/")
-    public String index(Model model) {
-        // FIX LỖI: Gọi đúng hàm getPopularVehicles() có trong Service
-        // Đặt tên attribute là "popularVehicles" để khớp với index.html cũ của bạn
-        model.addAttribute("popularVehicles", vehicleService.getPopularVehicles());
+    public String index(@RequestParam(name = "keyword", defaultValue = "") String keyword,
+                        @RequestParam(name = "page", defaultValue = "0") int page,
+                        Model model) {
+        int pageSize = 6;
+        var vehiclePage = vehicleService.searchVehiclesDetail(keyword, null, null,
+                PageRequest.of(page, pageSize));
 
-        // Thêm title để tránh lỗi layout
+        model.addAttribute("vehicles", vehiclePage.getContent());
+        model.addAttribute("currentPage", vehiclePage.getNumber());
+        model.addAttribute("totalPages", vehiclePage.getTotalPages());
+        model.addAttribute("keyword", keyword);
         model.addAttribute("title", "Trang chủ");
         return "index";
     }
