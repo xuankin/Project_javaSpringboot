@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head}">
-    <!-- Mapbox GL JS -->
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
     <header th:replace="~{fragments/header :: header}"></header>
@@ -71,77 +71,80 @@
         </div>
     </div>
 
-    <!-- Mapbox GL JS -->
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
         const historyData = /*[[${history}]]*/ [];
-        mapboxgl.accessToken = 'YOUR_MAPBOX_API_KEY'; // Vui lòng nhập token Mapbox của bạn tại đây để hiển thị bản đồ
+        
+        // Cấu hình bản đồ Leaflet
+        const defaultCenter = [21.0278, 105.8342]; // Hà Nội default
+        const mapCenter = historyData.length > 0 ? [historyData[0].latitude, historyData[0].longitude] : defaultCenter;
+        
+        const map = L.map('map').setView(mapCenter, 13);
 
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: historyData.length > 0 ? [historyData[0].longitude, historyData[0].latitude] : [105.8342, 21.0278],
-            zoom: 13
-        });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
 
-        map.on('load', () => {
-            if (historyData.length > 0) {
-                const coordinates = historyData.map(p => [p.longitude, p.latitude]);
+        if (historyData && historyData.length > 0) {
+            const latLngs = historyData.map(p => [p.latitude, p.longitude]);
+            
+            // Vẽ đường kết nối các điểm
+            const polyline = L.polyline(latLngs, {
+                color: '#007bff',
+                weight: 6,
+                opacity: 0.8,
+                lineJoin: 'round'
+            }).addTo(map);
 
-                // Thêm đường đi (Polyline)
-                map.addSource('route', {
-                    'type': 'geojson',
-                    'data': {
-                        'type': 'Feature',
-                        'properties': {},
-                        'geometry': {
-                            'type': 'LineString',
-                            'coordinates': coordinates
-                        }
-                    }
-                });
+            // Marker điểm bắt đầu (màu xanh lá)
+            const startIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
 
-                map.addLayer({
-                    'id': 'route',
-                    'type': 'line',
-                    'source': 'route',
-                    'layout': {
-                        'line-join': 'round',
-                        'line-cap': 'round'
-                    },
-                    'paint': {
-                        'line-color': '#007bff',
-                        'line-width': 5
-                    }
-                });
+            // Marker điểm kết thúc (màu đỏ)
+            const endIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
 
-                // Thêm Marker cho điểm bắt đầu và kết thúc
-                new mapboxgl.Marker({ color: 'green' })
-                    .setLngLat(coordinates[0])
-                    .setPopup(new mapboxgl.Popup().setHTML('Điểm bắt đầu: ' + historyData[0].timestamp))
-                    .addTo(map);
+            // Thêm marker điểm đầu
+            L.marker(latLngs[0], {icon: startIcon})
+                .addTo(map)
+                .bindPopup('<b>Điểm bắt đầu</b><br>' + historyData[0].timestamp);
 
-                if (coordinates.length > 1) {
-                    new mapboxgl.Marker({ color: 'red' })
-                        .setLngLat(coordinates[coordinates.length - 1])
-                        .setPopup(new mapboxgl.Popup().setHTML('Điểm cuối: ' + historyData[historyData.length - 1].timestamp))
-                        .addTo(map);
-                }
-
-                // Fit map to coordinates
-                const bounds = new mapboxgl.LngLatBounds();
-                coordinates.forEach(coord => bounds.extend(coord));
-                map.fitBounds(bounds, { padding: 50 });
+            // Thêm marker điểm cuối nếu có > 1 điểm
+            if (latLngs.length > 1) {
+                L.marker(latLngs[latLngs.length - 1], {icon: endIcon})
+                    .addTo(map)
+                    .bindPopup('<b>Điểm cuối</b><br>' + historyData[historyData.length - 1].timestamp);
             }
-        });
+
+            // Tự động zoom vừa vặn tất cả các điểm
+            map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+        }
 
         function centerMap(lat, lng) {
-            map.flyTo({
-                center: [lng, lat],
-                zoom: 16,
-                essential: true
+            map.flyTo([lat, lng], 16, {
+                animate: true,
+                duration: 1.5
             });
+            
+            // Highlight điểm vừa click với popup tạm
+            L.popup()
+                .setLatLng([lat, lng])
+                .setContent('Vị trí đã chọn')
+                .openOn(map);
         }
         /*]]>*/
     </script>
