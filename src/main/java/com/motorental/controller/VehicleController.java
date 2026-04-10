@@ -24,6 +24,7 @@ public class VehicleController {
 
     private final VehicleService vehicleService;
     private final FeedbackService feedbackService;
+    private final com.motorental.repository.UserRepository userRepository;
 
     // Trang danh sách xe (Đã nâng cấp)
     @GetMapping
@@ -56,7 +57,12 @@ public class VehicleController {
 
     // Trang chi tiết xe (Giữ nguyên)
     @GetMapping("/detail/{id}")
-    public String vehicleDetail(@PathVariable("id") Long id, Model model) {
+    public String vehicleDetail(@PathVariable("id") Long id, Model model, @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails) {
+        if (userDetails != null) {
+            userRepository.findByUsername(userDetails.getUsername()).ifPresent(u -> {
+                model.addAttribute("currentUserId", u.getId());
+            });
+        }
         VehicleDetailDto vehicle = vehicleService.getVehicleDetail(id);
         model.addAttribute("vehicle", vehicle);
 

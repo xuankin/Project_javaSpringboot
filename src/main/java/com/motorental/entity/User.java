@@ -57,6 +57,9 @@ public class User extends BaseEntity {
     @Builder.Default
     private Boolean isScammed = false;
 
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
     // --- Relationships ---
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})

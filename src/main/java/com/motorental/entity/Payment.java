@@ -42,7 +42,7 @@ public class Payment extends BaseEntity {
     @Column(name = "payment_date")
     private LocalDateTime paymentDate;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "notes_nv", columnDefinition = "NVARCHAR(MAX)")
     private String notes;
 
     @OneToOne(fetch = FetchType.LAZY)

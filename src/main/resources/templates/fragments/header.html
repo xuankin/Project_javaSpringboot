@@ -22,15 +22,6 @@
                     <a class="nav-link" href="/cart"><i class="fas fa-shopping-cart me-1"></i>Giỏ hàng</a>
                 </li>
 
-                <!-- Hiện nút Chat chỉ khi user đã đăng nhập và không phải admin -->
-                <li sec:authorize="isAuthenticated() and !hasRole('ADMIN')" class="nav-item">
-                    <a class="nav-link position-relative" href="/user/chat" id="nav-chat-link"
-                       title="Chat hỗ trợ với chủ shop">
-                        <i class="fas fa-headset me-1"></i>Hỗ trợ
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                              id="nav-unread-badge" style="display:none; font-size:0.6rem;">!</span>
-                    </a>
-                </li>
 
                 <li sec:authorize="!isAuthenticated()" class="nav-item">
                     <a class="nav-link" href="/login">Đăng nhập</a>
@@ -53,7 +44,7 @@
         fetch('/api/chat/unread-count')
             .then(res => res.json())
             .then(count => {
-                var badge = document.getElementById('nav-unread-badge');
+                var badge = document.getElementById('floating-unread-badge');
                 if(badge) {
                     badge.innerText = count > 9 ? '9+' : count;
                     badge.style.display = count > 0 ? 'inline-block' : 'none';

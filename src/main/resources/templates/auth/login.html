@@ -1,65 +1,68 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/head :: head}"></head>
+
 <body class="bg-light">
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-    <div class="card shadow p-4" style="width: 400px;">
-        <div class="text-center mb-4">
-            <h3 class="fw-bold">Đăng nhập</h3>
-            <p class="text-muted">Chào mừng trở lại MotoRental</p>
-        </div>
-
-        <div th:if="${param.error}" class="alert alert-danger">
-            Sai tên đăng nhập hoặc mật khẩu!
-        </div>
-        <div th:if="${param.logout}" class="alert alert-success">
-            Đăng xuất thành công!
-        </div>
-        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-
-        <form id="loginForm" th:action="@{/login}" method="post">
-            <input type="hidden" id="latitude" name="latitude">
-            <input type="hidden" id="longitude" name="longitude">
-            <div class="mb-3">
-                <label class="form-label">Tên đăng nhập</label>
-                <input type="text" name="username" class="form-control" required autofocus>
+    <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="card shadow p-4" style="width: 400px;">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold">Đăng nhập</h3>
+                <p class="text-muted">Chào mừng trở lại MotoRental</p>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Mật khẩu</label>
-                <input type="password" name="password" class="form-control" required>
-            </div>
-            <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="remember" name="remember-me">
-                <label class="form-check-label" for="remember">Ghi nhớ đăng nhập</label>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
-        </form>
 
-        <script>
-            document.getElementById('loginForm').addEventListener('submit', function(e) {
-                // Chúng ta sẽ cố gắng lấy vị trí trước khi submit. 
-                // Tuy nhiên getCurrentPosition là async, nên cách tốt nhất là lấy khi vào trang hoặc dùng callback.
-                // Để đơn giản và nhanh, nếu đã có quyền thì sẽ lấy được nhanh.
-                if ("geolocation" in navigator) {
-                    // Nếu đã có tọa độ thì submit luôn, nếu chưa thì đợi 1 chút (hoặc cứ submit nếu fail)
-                }
-            });
+            <div th:if="${param.error}" class="alert alert-danger">
+                Sai tên đăng nhập hoặc mật khẩu!
+            </div>
+            <div th:if="${param.logout}" class="alert alert-success">
+                Đăng xuất thành công!
+            </div>
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
 
-            // Lấy tọa độ ngay khi trang load để sẵn sàng
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    document.getElementById('latitude').value = position.coords.latitude;
-                    document.getElementById('longitude').value = position.coords.longitude;
-                }, function(error) {
-                    console.error("Error getting location: ", error);
+            <form id="loginForm" th:action="@{/login}" method="post">
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+                <div class="mb-3">
+                    <label class="form-label">Tên đăng nhập</label>
+                    <input type="text" name="username" class="form-control" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mật khẩu</label>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember-me">
+                    <label class="form-check-label" for="remember">Ghi nhớ đăng nhập</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+            </form>
+
+            <script>
+                document.getElementById('loginForm').addEventListener('submit', function (e) {
+                    // Chúng ta sẽ cố gắng lấy vị trí trước khi submit. 
+                    // Tuy nhiên getCurrentPosition là async, nên cách tốt nhất là lấy khi vào trang hoặc dùng callback.
+                    // Để đơn giản và nhanh, nếu đã có quyền thì sẽ lấy được nhanh.
+                    if ("geolocation" in navigator) {
+                        // Nếu đã có tọa độ thì submit luôn, nếu chưa thì đợi 1 chút (hoặc cứ submit nếu fail)
+                    }
                 });
-            }
-        </script>
 
-        <div class="text-center mt-3">
-            <p>Chưa có tài khoản? <a href="/register">Đăng ký ngay</a></p>
+                // Lấy tọa độ ngay khi trang load để sẵn sàng
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        document.getElementById('latitude').value = position.coords.latitude;
+                        document.getElementById('longitude').value = position.coords.longitude;
+                    }, function (error) {
+                        console.error("Error getting location: ", error);
+                    });
+                }
+            </script>
+
+            <div class="text-center mt-3">
+                <p>Chưa có tài khoản? <a href="/register">Đăng ký ngay</a></p>
+            </div>
         </div>
     </div>
-</div>
 </body>
+
 </html>

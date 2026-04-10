@@ -21,7 +21,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
-    private final AuthenticationSuccessHandler successHandler; // Inject handler vừa tạo
+    private final AuthenticationSuccessHandler successHandler;
 
     @Bean
     public static PasswordEncoder passwordEncoder() {
@@ -44,8 +44,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. PUBLIC: Cho phép truy cập tự do
                         .requestMatchers(
                                 "/",
                                 "/home",
@@ -54,14 +54,9 @@ public class SecurityConfig {
                                 "/vehicles",
                                 "/vehicles/**",
                                 "/css/**", "/js/**", "/images/**", "/uploads/**", "/webjars/**",
-                                "/ws/**","/chat" //
+                                "/ws/**","/chat"
                         ).permitAll()
-
-                        // 2. ADMIN: Chỉ Admin mới vào được trang quản trị
-                        // QUAN TRỌNG: Sửa đường dẫn từ "/templates/admin/**" thành "/admin/**"
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-
-                        // 3. USER: Các trang cần đăng nhập
                         .requestMatchers(
                                 "/cart/**",
                                 "/orders/**",
@@ -69,17 +64,14 @@ public class SecurityConfig {
                                 "/payments/**",
                                 "/profile",
                                 "/feedbacks/add",
-                                "/user/chat",          // Trang chat cần đăng nhập
-                                "/api/chat/**"          // API chat cần đăng nhập
+                                "/user/chat",
+                                "/api/chat/**"
                         ).authenticated()
-
-                        // 4. Các request còn lại phải xác thực
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        // QUAN TRỌNG: Thay defaultSuccessUrl bằng successHandler để phân quyền chuyển hướng
                         .successHandler(successHandler)
                         .failureUrl("/login?error=true")
                         .permitAll()

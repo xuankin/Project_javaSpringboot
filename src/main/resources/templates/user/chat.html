@@ -9,16 +9,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #df6919;
-            --primary-dark: #b25414;
-            --primary-light: #f2c3a3;
-            --surface: #20374c;
-            --bg: #0f2537;
-            --text: #ebebeb;
-            --muted: #868e96;
-            --bubble-admin: #4e5d6c;
-            --bubble-user: #df6919;
-            --border: #4e5d6c;
+            --primary: #0084ff;
+            --primary-dark: #006bce;
+            --primary-light: #e5f2ff;
+            --surface: #ffffff;
+            --bg: #f0f2f5;
+            --text: #050505;
+            --muted: #65676b;
+            --bubble-admin: #e4e6eb;
+            --bubble-user: #0084ff;
+            --border: #ccd0d5;
         }
         * { box-sizing: border-box; }
 
@@ -222,7 +222,6 @@
             30% { transform: translateY(-6px); }
         }
 
-        /* ===== LOADING ===== */
         .loading-area {
             display: flex;
             flex-direction: column;
@@ -241,6 +240,22 @@
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== QUICK REPLIES ===== */
+        .quick-reply-btn {
+            background: var(--surface);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-reply-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
 
         /* ===== INPUT AREA ===== */
         .chat-input-area {
@@ -272,6 +287,20 @@
             color: var(--text);
         }
         #chat-input::placeholder { color: var(--muted); }
+        #attach-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        #attach-btn:hover { background: rgba(0,0,0,0.05); }
+        #attach-btn:disabled { cursor: not-allowed; opacity: 0.5; }
         #send-btn {
             width: 38px;
             height: 38px;
@@ -315,7 +344,7 @@
                 <div class="agent-status"><i class="fas fa-circle" style="font-size:7px; color:#22c55e;"></i> Trực tuyến</div>
             </div>
         </div>
-        <a href="/" class="back-btn"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
+        <a href="/" class="back-btn" id="chat-back-btn"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
     </div>
 
     <!-- Connection bar -->
@@ -334,6 +363,10 @@
     <!-- INPUT -->
     <div class="chat-input-area">
         <div class="input-group-chat">
+            <input type="file" id="chat-file-input" style="display:none" accept="image/*">
+            <button id="attach-btn" title="Gửi ảnh" onclick="document.getElementById('chat-file-input').click()" disabled>
+                <i class="fas fa-image" style="font-size:16px; color: var(--muted);"></i>
+            </button>
             <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." disabled>
             <button id="send-btn" title="Gửi tin nhắn" disabled>
                 <i class="fas fa-paper-plane" style="font-size:14px;"></i>
@@ -353,6 +386,8 @@ var chatBox = document.getElementById('chat-messages');
 var loadingArea = document.getElementById('loading-area');
 var chatInput = document.getElementById('chat-input');
 var sendBtn = document.getElementById('send-btn');
+var fileInput = document.getElementById('chat-file-input');
+var attachBtn = document.getElementById('attach-btn');
 
 // ---- WEBSOCKET ----
 function connect() {
@@ -365,14 +400,15 @@ function connect() {
         connBar.style.display = 'none';
         chatInput.disabled = false;
         sendBtn.disabled = false;
+        attachBtn.disabled = false;
         chatInput.focus();
 
-        // Nhận reply từ Admin
+        // Lắng nghe reply từ Admin
         stompClient.subscribe('/user/queue/reply', function(payload) {
             var msg = JSON.parse(payload.body);
             hideTyping();
             appendMessage({ content: msg.content, adminSender: true, timestamp: new Date().toISOString() });
-            markMessagesAsRead(); // Đánh dấu đã đọc ngay khi nhận được
+            markMessagesAsRead();
         });
 
         // Load lịch sử sau khi connect thành công
@@ -393,14 +429,37 @@ function loadHistory() {
             // Xóa loading
             loadingArea.remove();
 
-            // Tin nhắn chào mừng hệ thống
-            appendSystemMsg('Xin chào! Chúng tôi có thể hỗ trợ gì cho bạn hôm nay?');
+            var showWelcome = false;
 
             if (data.length === 0) {
-                appendSystemMsg('Đây là lần đầu bạn chat. Hãy gửi tin nhắn để bắt đầu!');
+                showWelcome = true;
+                appendSystemMsg('Cuộc trò chuyện được mã hóa kết nối.');
             } else {
+                appendSystemMsg('Các đoạn chat trước đó');
                 data.forEach(function(msg) { appendMessage(msg); });
-                markMessagesAsRead(); // Đánh dấu đã đọc lịch sử cũ
+                markMessagesAsRead();
+                
+                var lastMsgTime = new Date(data[data.length - 1].timestamp).getTime();
+                var now = new Date().getTime();
+                if ((now - lastMsgTime) > 24 * 60 * 60 * 1000) {
+                    showWelcome = true;
+                    appendSystemMsg('Cuộc trò chuyện mới');
+                }
+            }
+
+            if (showWelcome) {
+                setTimeout(function() {
+                    appendMessage({ 
+                        content: "Chào bạn 👋! Cảm ơn bạn đã liên hệ MotoRental.\nBạn cần hỗ trợ điều gì hôm nay ạ?", 
+                        adminSender: true, 
+                        timestamp: new Date().toISOString() 
+                    });
+                    appendQuickReplies([
+                        "Tôi muốn thuê xe 🏍️",
+                        "Hỏi thủ tục thuê xe 📝",
+                        "Cần hỗ trợ sự cố 🆘"
+                    ]);
+                }, 300);
             }
             scrollBottom();
         })
@@ -430,10 +489,45 @@ function sendMessage() {
     setTimeout(function() { sendBtn.disabled = false; }, 300);
     scrollBottom();
 
-    // Giả lập typing indicator admin (chỉ để làm đẹp demo)
+    // Giả lập typing indicator của admin
     showTyping();
     setTimeout(hideTyping, 2000);
 }
+
+// ---- UPLOAD IMAGE ----
+fileInput.addEventListener('change', function() {
+    var file = this.files[0];
+    if (!file) return;
+
+    var formData = new FormData();
+    formData.append("file", file);
+
+    chatInput.disabled = true;
+    sendBtn.disabled = true;
+    attachBtn.disabled = true;
+
+    fetch('/api/chat/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.url) {
+            var msgContent = "[IMAGE]" + data.url;
+            var chatMsg = { content: msgContent, type: 'CHAT' };
+            stompClient.send('/app/chat.sendMessage', {}, JSON.stringify(chatMsg));
+            appendMessage({ content: msgContent, adminSender: false, timestamp: new Date().toISOString() });
+        }
+    })
+    .catch(function(err) { console.error("Upload error", err); })
+    .finally(function() {
+        chatInput.disabled = false;
+        sendBtn.disabled = false;
+        attachBtn.disabled = false;
+        fileInput.value = '';
+        chatInput.focus();
+    });
+});
 
 // ---- RENDER ----
 function appendSystemMsg(text) {
@@ -441,6 +535,29 @@ function appendSystemMsg(text) {
     el.className = 'system-msg';
     el.textContent = text;
     chatBox.appendChild(el);
+}
+
+function appendQuickReplies(replies) {
+    var wrapper = document.createElement('div');
+    wrapper.className = 'quick-replies-wrapper mt-2';
+    wrapper.style.display = 'flex';
+    wrapper.style.gap = '8px';
+    wrapper.style.padding = '4px 44px';
+    wrapper.style.flexWrap = 'wrap';
+    
+    replies.forEach(function(text) {
+        var btn = document.createElement('button');
+        btn.textContent = text;
+        btn.className = 'quick-reply-btn';
+        btn.onclick = function() {
+            chatInput.value = text;
+            sendMessage();
+            wrapper.remove();
+        };
+        wrapper.appendChild(btn);
+    });
+    chatBox.appendChild(wrapper);
+    scrollBottom();
 }
 
 function appendMessage(msg) {
@@ -459,7 +576,16 @@ function appendMessage(msg) {
     // Bubble
     var bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
-    bubble.innerHTML = escapeHtml(msg.content).replace(/\n/g, '<br>');
+    
+    if (msg.content && msg.content.startsWith('[IMAGE]')) {
+        var imgUrl = msg.content.substring(7);
+        bubble.innerHTML = `<img src="${imgUrl}" style="max-width: 100%; border-radius: 8px; cursor: pointer;" onclick="window.open(this.src, '_blank')" alt="image" />`;
+        bubble.style.padding = '5px';
+        bubble.style.background = isAdmin ? 'transparent' : 'rgba(0, 132, 255, 0.1)';
+        bubble.style.boxShadow = 'none';
+    } else {
+        bubble.innerHTML = escapeHtml(msg.content).replace(/\n/g, '<br>');
+    }
 
     if (isAdmin) {
         row.appendChild(avatar);
@@ -522,6 +648,20 @@ chatInput.addEventListener('keypress', function(e) {
 sendBtn.addEventListener('click', sendMessage);
 
 // Start
+var urlParams = new URLSearchParams(window.location.search);
+if(urlParams.get('popup') === 'true') {
+    var backBtn = document.getElementById('chat-back-btn');
+    if (backBtn) {
+        backBtn.innerHTML = '<i class="fas fa-times"></i>';
+        backBtn.href = "javascript:void(0)";
+        backBtn.onclick = function(e) {
+            e.preventDefault();
+            if(window.parent && window.parent.toggleChatPopup) {
+                window.parent.toggleChatPopup();
+            }
+        };
+    }
+}
 connect();
 /*]]>*/
 </script>

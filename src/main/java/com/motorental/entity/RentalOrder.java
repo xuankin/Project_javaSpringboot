@@ -38,7 +38,7 @@ public class RentalOrder extends BaseEntity {
     @Column(name = "pickup_location", length = 255)
     private String pickupLocation;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "notes_nv", columnDefinition = "NVARCHAR(MAX)")
     private String notes;
 
     // --- Discount Fields ---

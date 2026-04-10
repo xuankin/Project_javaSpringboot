@@ -82,12 +82,25 @@ public class FeedbackService {
         feedbackRepository.delete(fb);
     }
 
+    @Transactional
+    public void editFeedback(Long id, String userId, Integer rating, String content) {
+        Feedback fb = feedbackRepository.findById(id).orElseThrow();
+        if (userId != null && !fb.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Không có quyền sửa đánh giá này");
+        }
+        if (rating != null) fb.setRating(rating);
+        if (content != null) fb.setContent(content);
+        feedbackRepository.save(fb);
+    }
+
     private FeedbackDto mapToDto(Feedback fb) {
         return FeedbackDto.builder()
                 .id(fb.getId())
                 .vehicleId(fb.getVehicle().getId())
                 .vehicleName(fb.getVehicle().getName())
                 .userName(fb.getUser().getUsername())
+                .userId(fb.getUser().getId()) // add to determine ownership in UI
+                .userAvatarUrl(fb.getUser().getAvatarUrl())
                 .rating(fb.getRating())
                 .comment(fb.getContent())
                 .createdAt(fb.getCreatedAt())

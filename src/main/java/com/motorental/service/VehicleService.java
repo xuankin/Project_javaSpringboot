@@ -35,13 +35,14 @@ public class VehicleService {
 
     // --- PHẦN KHÁCH HÀNG (SEARCH & VIEW) ---
 
-    // 1. [MỚI] Lấy danh sách hãng xe
+    // Lấy danh sách hãng xe
     public List<String> getAllBrands() {
         return vehicleRepository.findAllBrands();
     }
 
-    // 2. [CẬP NHẬT] Tìm kiếm xe với bộ lọc đầy đủ
-    public Page<VehicleDetailDto> searchVehiclesDetail(String keyword, String brand, Double maxPrice, Pageable pageable) {
+    // Tìm kiếm xe với bộ lọc đầy đủ
+    public Page<VehicleDetailDto> searchVehiclesDetail(String keyword, String brand, Double maxPrice,
+            Pageable pageable) {
         return vehicleRepository.searchVehiclesDetail(keyword, brand, maxPrice, pageable)
                 .map(this::mapToDetailDto);
     }
@@ -49,13 +50,15 @@ public class VehicleService {
     public Page<VehicleDto> searchVehicles(String keyword, String statusStr, Pageable pageable) {
         Vehicle.VehicleStatus status = null;
         if (statusStr != null && !statusStr.isEmpty()) {
-            try { status = Vehicle.VehicleStatus.valueOf(statusStr); } catch (IllegalArgumentException e) {}
+            try {
+                status = Vehicle.VehicleStatus.valueOf(statusStr);
+            } catch (IllegalArgumentException e) {
+            }
         }
         return vehicleRepository.searchVehicles(keyword, status, pageable).map(this::mapToDto);
     }
 
     public List<VehicleDto> getPopularVehicles() {
-        // Tăng từ 6 lên 12 xe để hiển thị được nhiều xe mới hơn tại trang chủ
         return vehicleRepository.findTopPopularVehicles(Pageable.ofSize(12)).stream()
                 .map(this::mapToDto).collect(Collectors.toList());
     }
@@ -66,10 +69,11 @@ public class VehicleService {
     }
 
     public List<VehicleAvailability> getFutureBookings(Long vehicleId) {
-        return availabilityRepository.findFutureBookings(vehicleId, List.of(VehicleAvailability.AvailabilityStatus.BOOKED, VehicleAvailability.AvailabilityStatus.COMPLETED));
+        return availabilityRepository.findFutureBookings(vehicleId, List
+                .of(VehicleAvailability.AvailabilityStatus.BOOKED, VehicleAvailability.AvailabilityStatus.COMPLETED));
     }
 
-    // --- ADMIN: CREATE & UPDATE (GIỮ NGUYÊN) ---
+    // --- ADMIN: CREATE & UPDATE ---
 
     @Transactional
     public void createVehicle(VehicleDto dto, List<MultipartFile> imageFiles) throws IOException {
@@ -78,12 +82,13 @@ public class VehicleService {
         }
 
         Vehicle vehicle = modelMapper.map(dto, Vehicle.class);
-        
-        // Luôn gán vị trí mặc định cho xe mới để xuất hiện trên bản đồ
-        // Ví dụ: Tọa độ Hồ Gươm, Hà Nội (21.0285, 105.8542)
-        if (vehicle.getLatitude() == null) vehicle.setLatitude(21.0285);
-        if (vehicle.getLongitude() == null) vehicle.setLongitude(105.8542);
-        
+
+        // Gán vị trí mặc định cho xe mới để hiển thị trên bản đồ (VD: Hà Nội)
+        if (vehicle.getLatitude() == null)
+            vehicle.setLatitude(21.0285);
+        if (vehicle.getLongitude() == null)
+            vehicle.setLongitude(105.8542);
+
         Vehicle saved = vehicleRepository.save(vehicle);
         if (hasNewImages(imageFiles)) {
             saveImages(saved, imageFiles, true);
@@ -138,11 +143,13 @@ public class VehicleService {
 
     private void saveImages(Vehicle vehicle, List<MultipartFile> files, boolean firstPrimary) throws IOException {
         Path uploadPath = Paths.get(UPLOAD_DIR);
-        if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+        if (!Files.exists(uploadPath))
+            Files.createDirectories(uploadPath);
 
         boolean primaryAssigned = false;
         for (MultipartFile file : files) {
-            if (file == null || file.isEmpty()) continue;
+            if (file == null || file.isEmpty())
+                continue;
             String original = file.getOriginalFilename();
             String safeName = (original == null) ? "img" : original.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
             String fileName = UUID.randomUUID() + "_" + safeName;
@@ -162,7 +169,8 @@ public class VehicleService {
     }
 
     private void deleteFileByUrl(String imageUrl) {
-        if (imageUrl == null || !imageUrl.startsWith(URL_PREFIX)) return;
+        if (imageUrl == null || !imageUrl.startsWith(URL_PREFIX))
+            return;
         try {
             String fileName = imageUrl.substring(URL_PREFIX.length());
             Path filePath = Paths.get(UPLOAD_DIR).resolve(fileName);
@@ -177,10 +185,12 @@ public class VehicleService {
     }
 
     private VehicleDto mapToDto(Vehicle vehicle) {
-        // Đảm bảo xe luôn có tọa độ để hiện lên bản đồ (Tránh rớt xuống hồ)
-        if (vehicle.getLatitude() == null) vehicle.setLatitude(10.7289);
-        if (vehicle.getLongitude() == null) vehicle.setLongitude(106.7217);
-        
+        // Đảm bảo xe có tọa độ mặc định để hiển thị trên bản đồ
+        if (vehicle.getLatitude() == null)
+            vehicle.setLatitude(10.7289);
+        if (vehicle.getLongitude() == null)
+            vehicle.setLongitude(106.7217);
+
         VehicleDto dto = modelMapper.map(vehicle, VehicleDto.class);
         dto.setPrimaryImageUrl(getPrimaryImageUrl(vehicle));
         return dto;
@@ -188,8 +198,10 @@ public class VehicleService {
 
     private VehicleDetailDto mapToDetailDto(Vehicle vehicle) {
         // Đảm bảo xe luôn có tọa độ để hiện lên bản đồ
-        if (vehicle.getLatitude() == null) vehicle.setLatitude(10.7289);
-        if (vehicle.getLongitude() == null) vehicle.setLongitude(106.7217);
+        if (vehicle.getLatitude() == null)
+            vehicle.setLatitude(10.7289);
+        if (vehicle.getLongitude() == null)
+            vehicle.setLongitude(106.7217);
 
         VehicleDetailDto dto = modelMapper.map(vehicle, VehicleDetailDto.class);
         List<String> images = vehicle.getImages().stream().map(VehicleImage::getImageUrl).collect(Collectors.toList());
@@ -201,7 +213,8 @@ public class VehicleService {
     }
 
     private String getPrimaryImageUrl(Vehicle vehicle) {
-        if (vehicle.getImages() == null || vehicle.getImages().isEmpty()) return "/images/default.jpg";
+        if (vehicle.getImages() == null || vehicle.getImages().isEmpty())
+            return "/images/default.jpg";
         return vehicle.getImages().stream()
                 .filter(img -> Boolean.TRUE.equals(img.getIsPrimary()))
                 .map(VehicleImage::getImageUrl)
