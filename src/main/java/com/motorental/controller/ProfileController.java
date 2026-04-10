@@ -28,10 +28,11 @@ public class ProfileController {
 
     @PostMapping("/user/profile/update")
     public String updateProfile(@ModelAttribute("userDto") UserDto userDto,
+                                @org.springframework.web.bind.annotation.RequestParam(value = "avatarFile", required = false) org.springframework.web.multipart.MultipartFile avatarFile,
                                 Principal principal,
                                 RedirectAttributes redirectAttributes) {
         try {
-            userService.updateUserProfile(principal.getName(), userDto);
+            userService.updateUserProfile(principal.getName(), userDto, avatarFile);
             redirectAttributes.addFlashAttribute("success", "Cập nhật hồ sơ thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());

@@ -21,6 +21,7 @@ public class UserDto {
 
     // MỚI: Thêm trường này
     private Boolean isScammed;
+    private String avatarUrl;
 
     private Set<String> roles;
 }

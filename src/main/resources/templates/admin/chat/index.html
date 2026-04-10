@@ -61,6 +61,10 @@
 
             <div class="p-3 bg-white border-top flex-shrink-0">
                 <div class="input-group">
+                    <input type="file" id="admin-chat-file-input" style="display:none" accept="image/*">
+                    <button class="btn btn-outline-secondary" id="admin-attach-btn" onclick="document.getElementById('admin-chat-file-input').click()" disabled>
+                        <i class="fas fa-image"></i>
+                    </button>
                     <input type="text" id="admin-chat-input" class="form-control" placeholder="Nhập tin nhắn..." disabled onkeypress="handleAdminEnter(event)">
                     <button class="btn btn-primary" id="admin-send-btn" onclick="sendAdminReply()" disabled>
                         <i class="fas fa-paper-plane"></i>
@@ -136,6 +140,8 @@
 
             document.getElementById('admin-chat-input').disabled = false;
             document.getElementById('admin-send-btn').disabled = false;
+            var attachBtn = document.getElementById('admin-attach-btn');
+            if (attachBtn) attachBtn.disabled = false;
 
             document.querySelectorAll('.chat-user-item').forEach(el => el.classList.remove('active'));
             var activeItem = document.getElementById('user-item-' + username);
@@ -224,11 +230,20 @@
             var chatBox = document.getElementById('admin-chat-content');
             var div = document.createElement('div');
             div.className = 'd-flex mb-3 ' + (isMe ? 'justify-content-end' : 'justify-content-start');
-            div.innerHTML = `
+            
+            var msgHtml = '';
+            if (content && content.startsWith('[IMAGE]')) {
+                var imgUrl = content.substring(7);
+                msgHtml = `<img src="${imgUrl}" style="max-width: 300px; max-height: 300px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" onclick="window.open(this.src, '_blank')" alt="image" />`;
+            } else {
+                msgHtml = `
                 <div class="p-3 rounded-3 shadow-sm ${isMe ? 'bg-primary text-white' : 'bg-white text-dark'}"
                      style="max-width: 75%; word-wrap: break-word;">
                     ${content.replace(/\n/g, "<br>")}
                 </div>`;
+            }
+            
+            div.innerHTML = msgHtml;
             chatBox.appendChild(div);
         }
 
@@ -247,6 +262,55 @@
         }
 
         function handleAdminEnter(e) { if(e.key === 'Enter') sendAdminReply(); }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var fileInput = document.getElementById('admin-chat-file-input');
+            if (fileInput) {
+                fileInput.addEventListener('change', function() {
+                    var file = this.files[0];
+                    if (!file || !selectedUser) return;
+                    
+                    var formData = new FormData();
+                    formData.append("file", file);
+                    
+                    var input = document.getElementById('admin-chat-input');
+                    var sendBtn = document.getElementById('admin-send-btn');
+                    var attachBtn = document.getElementById('admin-attach-btn');
+                    
+                    input.disabled = true;
+                    sendBtn.disabled = true;
+                    attachBtn.disabled = true;
+                    
+                    fetch('/api/chat/upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.url) {
+                            var msgContent = "[IMAGE]" + data.url;
+                            var chatMessage = {
+                                sender: 'Admin',
+                                receiver: selectedUser,
+                                content: msgContent,
+                                type: 'CHAT'
+                            };
+                            stompClient.send("/app/chat.reply", {}, JSON.stringify(chatMessage));
+                            renderMessage(msgContent, true);
+                            scrollToBottom();
+                        }
+                    })
+                    .catch(err => console.error("Upload error", err))
+                    .finally(() => {
+                        input.disabled = false;
+                        sendBtn.disabled = false;
+                        attachBtn.disabled = false;
+                        fileInput.value = '';
+                        input.focus();
+                    });
+                });
+            }
+        });
 
         initPage();
     </script>

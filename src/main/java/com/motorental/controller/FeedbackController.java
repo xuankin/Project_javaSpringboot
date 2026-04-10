@@ -60,4 +60,36 @@ public class FeedbackController {
         // 5. Chuyển hướng quay lại trang chi tiết chiếc xe vừa đánh giá
         return "redirect:/vehicles/detail/" + dto.getVehicleId();
     }
+
+    @PostMapping("/edit/{id}")
+    public String editFeedback(@org.springframework.web.bind.annotation.PathVariable("id") Long id,
+                               @AuthenticationPrincipal UserDetails userDetails,
+                               @ModelAttribute FeedbackDto dto,
+                               RedirectAttributes redirectAttributes) {
+        if (userDetails == null) return "redirect:/login";
+        try {
+            String userId = userRepository.findByUsername(userDetails.getUsername()).orElseThrow().getId();
+            feedbackService.editFeedback(id, userId, dto.getRating(), dto.getComment());
+            redirectAttributes.addFlashAttribute("success", "Đã cập nhật đánh giá thành công.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/vehicles/detail/" + dto.getVehicleId();
+    }
+
+    @PostMapping("/delete/{id}")
+    public String deleteFeedback(@org.springframework.web.bind.annotation.PathVariable("id") Long id,
+                                 @org.springframework.web.bind.annotation.RequestParam("vehicleId") Long vehicleId,
+                                 @AuthenticationPrincipal UserDetails userDetails,
+                                 RedirectAttributes redirectAttributes) {
+        if (userDetails == null) return "redirect:/login";
+        try {
+            String userId = userRepository.findByUsername(userDetails.getUsername()).orElseThrow().getId();
+            feedbackService.deleteFeedback(id, userId);
+            redirectAttributes.addFlashAttribute("success", "Đã xóa đánh giá.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/vehicles/detail/" + vehicleId;
+    }
 }

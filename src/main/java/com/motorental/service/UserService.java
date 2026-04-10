@@ -70,12 +70,25 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUserProfile(String username, UserDto userDto) {
+    public void updateUserProfile(String username, UserDto userDto, org.springframework.web.multipart.MultipartFile avatarFile) throws java.io.IOException {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
         user.setFullName(userDto.getFullName());
         user.setPhoneNumber(userDto.getPhoneNumber());
+
+        if (avatarFile != null && !avatarFile.isEmpty()) {
+            java.nio.file.Path uploadPath = java.nio.file.Paths.get("uploads/");
+            if (!java.nio.file.Files.exists(uploadPath)) java.nio.file.Files.createDirectories(uploadPath);
+
+            String original = avatarFile.getOriginalFilename();
+            String safeName = (original == null) ? "avatar.png" : original.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
+            String fileName = "avatar_" + java.util.UUID.randomUUID() + "_" + safeName;
+            java.nio.file.Files.copy(avatarFile.getInputStream(), uploadPath.resolve(fileName), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            user.setAvatarUrl("/uploads/" + fileName);
+        }
+
         userRepository.save(user);
     }
 
@@ -102,6 +115,7 @@ public class UserService {
                 .phoneNumber(user.getPhoneNumber())
                 .isActive(user.getIsActive())
                 .isScammed(user.getIsScammed() != null ? user.getIsScammed() : false) // Map thêm trường này
+                .avatarUrl(user.getAvatarUrl())
                 .roles(user.getRoles().stream()
                         .map(Role::getName)
                         .collect(Collectors.toSet()))

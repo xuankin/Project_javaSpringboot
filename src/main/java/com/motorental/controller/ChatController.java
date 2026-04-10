@@ -10,8 +10,16 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 import java.security.Principal;
 import java.util.List;
@@ -46,13 +54,11 @@ public class ChatController {
 
     // --- PAGES ---
 
-    // 1. Trang chat cho User (ĐÃ SỬA: Thêm /user vào đường dẫn)
     @GetMapping("/user/chat")
     public String userChatPage() {
         return "user/chat";
     }
 
-    // 2. Trang chat cho Admin
     @GetMapping("/admin/chat")
     public String adminChatPage() {
         return "admin/chat/index";
@@ -106,8 +112,6 @@ public class ChatController {
     @ResponseBody
     public ResponseEntity<Void> markAsRead(@RequestParam("sender") String sender, Principal principal) {
         if (principal == null) return ResponseEntity.badRequest().build();
-        // Nếu client là Admin, nó sẽ gửi principal tên là tài khoản admin, nhưng receiver trong entity gọi là Admin.
-        // Để dễ, ta tách endpoint Admin và User.
         chatService.markAsRead(principal.getName(), sender);
         return ResponseEntity.ok().build();
     }
@@ -117,5 +121,28 @@ public class ChatController {
     public ResponseEntity<Void> adminMarkAsRead(@RequestParam("sender") String sender) {
         chatService.markAsRead("Admin", sender);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/api/chat/upload")
+    @ResponseBody
+    public ResponseEntity<java.util.Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) return ResponseEntity.badRequest().build();
+            
+            Path uploadPath = Paths.get("uploads");
+            if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+            
+            String original = file.getOriginalFilename();
+            String safeName = (original == null) ? "chat_img" : original.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
+            String fileName = "chat_" + UUID.randomUUID() + "_" + safeName;
+            
+            Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+            
+            java.util.Map<String, String> response = new java.util.HashMap<>();
+            response.put("url", "/uploads/" + fileName);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

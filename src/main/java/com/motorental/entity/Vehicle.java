@@ -33,7 +33,7 @@ public class Vehicle extends BaseEntity {
     @Column(name = "license_plate", unique = true, nullable = false, length = 50)
     private String licensePlate;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "description_nv", columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
     @DecimalMin(value = "0.0", inclusive = false, message = "Giá thuê phải lớn hơn 0")

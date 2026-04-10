@@ -98,7 +98,7 @@
                     </div>
 
                     <h3 class="text-danger fw-bold mb-4">
-                        <span th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'POINT', 0, 'COMMA')}"></span> đ/ngày
+                        <span th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 0, 'POINT', 0, 'COMMA')}"></span> VNĐ/ngày
                     </h3>
 
                     <ul class="list-unstyled mb-4">
@@ -184,11 +184,35 @@
                     <div th:each="fb : ${feedbacks}" class="card mb-3 shadow-sm border-0">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div>
-                                    <i class="fas fa-user-circle fa-2x text-secondary me-2"></i>
-                                    <strong th:text="${fb.userName}" class="fs-5">Khách hàng</strong>
+                                <div class="d-flex align-items-center">
+                                    <img th:if="${fb.userAvatarUrl != null}" th:src="${fb.userAvatarUrl}" 
+                                         class="rounded-circle me-2 object-fit-cover shadow-sm" style="width: 45px; height: 45px; border: 2px solid #e9ecef;" alt="Avatar">
+                                    <i th:unless="${fb.userAvatarUrl != null}" class="fas fa-user-circle fa-2x text-secondary me-2"></i>
+                                    <strong th:text="${fb.userName}" class="fs-5 mb-0">Khách hàng</strong>
                                 </div>
-                                <small class="text-muted" th:text="${#temporals.format(fb.createdAt, 'dd-MM-yyyy HH:mm')}"></small>
+                                <div>
+                                    <small class="text-muted" th:text="${#temporals.format(fb.createdAt, 'dd-MM-yyyy HH:mm')}"></small>
+                                    
+                                    <!-- Nút 3 chấm cho chính User sở hữu đánh giá -->
+                                    <div class="dropdown d-inline-block ms-2" th:if="${currentUserId != null and currentUserId == fb.userId}">
+                                        <button class="btn btn-link text-muted p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                            <li><a class="dropdown-item d-flex align-items-center" href="javascript:void(0)" 
+                                                    th:data-id="${fb.id}" th:data-rating="${fb.rating}" th:data-comment="${fb.comment}"
+                                                    onclick="openEditFeedbackModal(this.getAttribute('data-id'), this.getAttribute('data-rating'), this.getAttribute('data-comment'))">
+                                                <i class="fas fa-edit me-2 text-primary"></i> Sửa đánh giá</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <button type="button" class="dropdown-item d-flex align-items-center text-danger"
+                                                        th:onclick="'openDeleteFeedbackModal(' + ${fb.id} + ')'">
+                                                    <i class="fas fa-trash-alt me-2"></i> Xóa
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="mb-2">
@@ -204,6 +228,65 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Edit Feedback Modal -->
+<div class="modal fade" id="editFeedbackModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="editFeedbackForm" method="post" th:action="@{/}">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Sửa đánh giá</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="vehicleId" th:value="${vehicle.id}">
+                    <div class="mb-3 text-center">
+                        <div class="rating justify-content-center">
+                            <input type="radio" id="edit_star5" name="rating" value="5" /><label for="edit_star5" title="Tuyệt vời"></label>
+                            <input type="radio" id="edit_star4" name="rating" value="4" /><label for="edit_star4" title="Tốt"></label>
+                            <input type="radio" id="edit_star3" name="rating" value="3" /><label for="edit_star3" title="Bình thường"></label>
+                            <input type="radio" id="edit_star2" name="rating" value="2" /><label for="edit_star2" title="Tệ"></label>
+                            <input type="radio" id="edit_star1" name="rating" value="1" /><label for="edit_star1" title="Rất tệ"></label>
+                        </div>
+                        <small class="text-muted">Đánh giá sao</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chi tiết trải nghiệm</label>
+                        <textarea id="editComment" name="comment" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Feedback Modal -->
+<div class="modal fade" id="deleteFeedbackModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form id="deleteFeedbackForm" method="post" th:action="@{/}">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Xác nhận xóa</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <input type="hidden" name="vehicleId" th:value="${vehicle.id}">
+                    <i class="fas fa-trash-alt fa-3x text-danger mb-3 opacity-75"></i>
+                    <p class="mb-0 fs-5 text-dark">Bạn có thật sự muốn xóa đánh giá này?</p>
+                    <small class="text-muted">Hành động này không thể hoàn tác.</small>
+                </div>
+                <div class="modal-footer border-top-0 d-flex justify-content-center bg-light">
+                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-danger px-4 fw-bold shadow-sm">Xóa vĩnh viễn</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -236,10 +319,26 @@
         }
     });
 
-    // Khởi tạo End Date
     const fpEnd = flatpickr("#endDate", {
         ...config
     });
+
+    // Hàm mở Dialog Sửa Đánh Giá
+    function openEditFeedbackModal(id, rating, comment) {
+        document.getElementById('editFeedbackForm').action = '/feedbacks/edit/' + id;
+        document.getElementById('editComment').value = comment;
+        var radio = document.getElementById('edit_star' + rating);
+        if(radio) radio.checked = true;
+        var modal = new bootstrap.Modal(document.getElementById('editFeedbackModal'));
+        modal.show();
+    }
+
+    // Hàm mở Dialog Xóa Đánh Giá
+    function openDeleteFeedbackModal(id) {
+        document.getElementById('deleteFeedbackForm').action = '/feedbacks/delete/' + id;
+        var modal = new bootstrap.Modal(document.getElementById('deleteFeedbackModal'));
+        modal.show();
+    }
     /*]]>*/
 </script>
 

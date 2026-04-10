@@ -23,6 +23,8 @@ public class FeedbackDto {
 
     private String vehicleName;
     private String userName;
+    private String userId;
+    private String userAvatarUrl;
 
     @NotNull(message = "Vui lòng chọn số điểm đánh giá")
     @Min(value = 1, message = "Tối thiểu 1 sao")
