@@ -28,7 +28,8 @@ public class UserTrackingController {
     @GetMapping("/tracking")
     public String trackingHistory(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Model model) {
 
         if (userDetails == null) {
@@ -37,15 +38,35 @@ public class UserTrackingController {
 
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
         
-        LocalDate filterDate = (date != null) ? date : LocalDate.now();
-        LocalDateTime startOfDay = filterDate.atStartOfDay();
-        LocalDateTime endOfDay = filterDate.atTime(LocalTime.MAX);
+        LocalDate finalStartDate = (startDate != null) ? startDate : LocalDate.now();
+        LocalDate finalEndDate = (endDate != null) ? endDate : LocalDate.now();
+        
+        // Đảm bảo startDate không lớn hơn endDate
+        if (finalStartDate.isAfter(finalEndDate)) {
+            LocalDate temp = finalStartDate;
+            finalStartDate = finalEndDate;
+            finalEndDate = temp;
+        }
+
+        LocalDateTime startOfDay = finalStartDate.atStartOfDay();
+        LocalDateTime endOfDay = finalEndDate.atTime(LocalTime.MAX);
 
         List<UserLocationHistory> history = historyRepository.findByUserIdAndDateRange(
                 user.getId(), startOfDay, endOfDay);
 
+        // Chuyển sang format DTO/Map để tránh lỗi JSON parse ở Thymeleaf
+        List<java.util.Map<String, Object>> historyDto = history.stream().map(h -> {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("latitude", h.getLatitude());
+            map.put("longitude", h.getLongitude());
+            map.put("timestamp", h.getTimestamp().toString());
+            return map;
+        }).collect(java.util.stream.Collectors.toList());
+
+        model.addAttribute("historyDataJson", historyDto);
         model.addAttribute("history", history);
-        model.addAttribute("selectedDate", filterDate);
+        model.addAttribute("startDate", finalStartDate);
+        model.addAttribute("endDate", finalEndDate);
 
         return "tracking/history";
     }

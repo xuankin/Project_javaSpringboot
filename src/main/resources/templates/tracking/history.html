@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head}">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-</head>
+<head th:replace="~{fragments/head :: head}"></head>
 <body>
     <header th:replace="~{fragments/header :: header}"></header>
-
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-12">
@@ -17,8 +15,13 @@
                                 <i class="fas fa-route me-2"></i>Lịch trình di chuyển
                             </h4>
                             <form action="/tracking" method="get" class="d-flex gap-2">
-                                <input type="date" name="date" class="form-control" th:value="${selectedDate}">
-                                <button type="submit" class="btn btn-primary">
+                                <div class="input-group">
+                                    <span class="input-group-text">Từ</span>
+                                    <input type="date" name="startDate" class="form-control" th:value="${startDate}">
+                                    <span class="input-group-text">Đến</span>
+                                    <input type="date" name="endDate" class="form-control" th:value="${endDate}">
+                                </div>
+                                <button type="submit" class="btn btn-primary text-nowrap">
                                     <i class="fas fa-filter me-1"></i>Lọc
                                 </button>
                             </form>
@@ -75,10 +78,10 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        const historyData = /*[[${history}]]*/ [];
+        const historyData = /*[[${historyDataJson}]]*/ [];
         
         // Cấu hình bản đồ Leaflet
-        const defaultCenter = [21.0278, 105.8342]; // Hà Nội default
+        const defaultCenter = [10.762622, 106.660172]; // HCM default
         const mapCenter = historyData.length > 0 ? [historyData[0].latitude, historyData[0].longitude] : defaultCenter;
         
         const map = L.map('map').setView(mapCenter, 13);
@@ -90,13 +93,39 @@
         if (historyData && historyData.length > 0) {
             const latLngs = historyData.map(p => [p.latitude, p.longitude]);
             
-            // Vẽ đường kết nối các điểm
-            const polyline = L.polyline(latLngs, {
-                color: '#007bff',
-                weight: 6,
-                opacity: 0.8,
-                lineJoin: 'round'
-            }).addTo(map);
+            // Vẽ đường kết nối các điểm (Dùng đường bộ thực tế qua OSRM API - KHÔNG CẦN MAPBOX TOKEN)
+            let polyline = null;
+            if (latLngs.length > 1) {
+                // Tách 25 điểm tối đa để gọi OSRM Route API (OSRM OSRM Demo API giới hạn)
+                let sampledCoords = historyData;
+                if (sampledCoords.length > 25) {
+                    const step = Math.ceil(sampledCoords.length / 25);
+                    sampledCoords = sampledCoords.filter((_, index) => index % step === 0).slice(0, 24);
+                    sampledCoords.push(historyData[historyData.length - 1]);
+                }
+                const coordsString = sampledCoords.map(c => c.longitude + ',' + c.latitude).join(';');
+                const url = `https://router.project-osrm.org/route/v1/driving/${coordsString}?overview=full&geometries=geojson`;
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                            // Vẽ đường cong thực tế
+                            polyline = L.geoJSON(data.routes[0].geometry, {
+                                style: { color: '#007bff', weight: 6, opacity: 0.8, lineJoin: 'round' }
+                            }).addTo(map);
+                            map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+                        } else {
+                            // Fallback đường thẳng
+                            polyline = L.polyline(latLngs, { color: '#007bff', weight: 6, opacity: 0.8, lineJoin: 'round' }).addTo(map);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Lỗi lấy dữ liệu OSRM', err);
+                        // Fallback đường thẳng
+                        polyline = L.polyline(latLngs, { color: '#007bff', weight: 6, opacity: 0.8, lineJoin: 'round' }).addTo(map);
+                    });
+            }
 
             // Marker điểm bắt đầu (màu xanh lá)
             const startIcon = L.icon({
@@ -128,10 +157,14 @@
                 L.marker(latLngs[latLngs.length - 1], {icon: endIcon})
                     .addTo(map)
                     .bindPopup('<b>Điểm cuối</b><br>' + historyData[historyData.length - 1].timestamp);
+                
+                // Tự động zoom vừa vặn (Đã được gọi bên trong fetch() nếu có OSRM, phần này fallback)
+                setTimeout(() => {
+                    if (polyline) map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+                }, 500);
+            } else {
+                map.setView(latLngs[0], 16);
             }
-
-            // Tự động zoom vừa vặn tất cả các điểm
-            map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
         }
 
         function centerMap(lat, lng) {
