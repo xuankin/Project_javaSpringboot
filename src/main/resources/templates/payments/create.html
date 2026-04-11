@@ -35,13 +35,11 @@
                                 </button>
                             </form>
 
-                            <form th:action="@{/payments/vnpay/{id}(id=${orderId})}" method="post">
-                                <input type="hidden" name="returnUrl" value="http://localhost:8088/payments/vnpay/callback">
-                                <button type="submit" class="btn btn-outline-primary w-100 py-3 text-start">
-                                    <i class="fas fa-credit-card fa-2x me-3 align-middle"></i>
-                                    <span class="align-middle">Thanh toán qua VNPay</span>
-                                </button>
-                            </form>
+                            <a th:href="@{/payments/vnpay/preview/{id}(id=${orderId})}"
+                               class="btn btn-outline-primary w-100 py-3 text-start text-decoration-none d-block">
+                                <i class="fas fa-credit-card fa-2x me-3 align-middle"></i>
+                                <span class="align-middle">Thanh toán qua VNPay</span>
+                            </a>
                         </div>
                     </div>
 

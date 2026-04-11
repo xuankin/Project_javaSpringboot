@@ -125,8 +125,10 @@
                                 <input type="text" id="endDate" name="endDate" class="form-control" placeholder="Ngày trả" required autocomplete="off">
                             </div>
                             <small class="text-muted fst-italic mt-1 d-block">
-                                <i class="fas fa-info-circle"></i> Các ngày bị mờ là ngày xe đã được đặt.
+                                <i class="fas fa-info-circle"></i> Các ngày bị mờ là ngày xe đã được đặt/đang thuê.
                             </small>
+                            <div id="dateError" class="text-danger small mt-1 fw-semibold"></div>
+                            <div id="bookedInfo" class="mt-2"></div>
                         </div>
 
                         <div class="d-grid gap-2">
@@ -293,15 +295,32 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script> <script th:inline="javascript">
+<script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
+<script th:inline="javascript">
     /*<![CDATA[*/
-    // Nhận danh sách ngày đã đặt từ Controller
+    // Nhận danh sách ngày đã đặt từ Controller (chỉ BOOKED)
     const blockedDates = /*[[${blockedDates}]]*/ [];
+
+    // Hiển thị thông tin lịch bận bên dưới form nếu có
+    function renderBookedInfo() {
+        const container = document.getElementById('bookedInfo');
+        if (!container) return;
+        if (blockedDates.length === 0) {
+            container.innerHTML = '<small class="text-success"><i class="fas fa-check-circle me-1"></i>Xe hiện đang rảnh, chưa có lịch đặt.</small>';
+            return;
+        }
+        let html = '<small class="text-warning fw-semibold"><i class="fas fa-calendar-times me-1"></i>Xe đã được đặt (không thể chọn):</small><ul class="mb-0 ps-3 mt-1">';
+        blockedDates.forEach(function(d) {
+            html += '<li><small class="text-muted">' + d.from + ' → ' + d.to + '</small></li>';
+        });
+        html += '</ul>';
+        container.innerHTML = html;
+    }
 
     const config = {
         dateFormat: "Y-m-d",
         minDate: "today",
-        disable: blockedDates, // Tự động disable các khoảng ngày từ backend
+        disable: blockedDates, // Tự động disable các khoảng ngày từ backend (chỉ BOOKED)
         locale: "vn",
         allowInput: true
     };
@@ -310,17 +329,52 @@
     const fpStart = flatpickr("#startDate", {
         ...config,
         onChange: function(selectedDates, dateStr, instance) {
-            // Khi chọn ngày bắt đầu, cập nhật minDate cho ngày kết thúc
+            document.getElementById('dateError').textContent = '';
             if (selectedDates[0]) {
                 fpEnd.set('minDate', dateStr);
-                // Tự động mở lịch ngày kết thúc
                 setTimeout(() => fpEnd.open(), 100);
             }
         }
     });
 
     const fpEnd = flatpickr("#endDate", {
-        ...config
+        ...config,
+        onChange: function(selectedDates, dateStr, instance) {
+            document.getElementById('dateError').textContent = '';
+        }
+    });
+
+    // Validate trước khi submit form
+    document.querySelector('form[action*="/cart/add"]').addEventListener('submit', function(e) {
+        const start = fpStart.selectedDates[0];
+        const end = fpEnd.selectedDates[0];
+        const errEl = document.getElementById('dateError');
+
+        if (!start || !end) {
+            e.preventDefault();
+            errEl.textContent = 'Vui lòng chọn đầy đủ ngày nhận và ngày trả xe.';
+            return;
+        }
+        if (end <= start) {
+            e.preventDefault();
+            errEl.textContent = 'Ngày trả phải sau ngày nhận ít nhất 1 ngày.';
+            return;
+        }
+
+        // Kiểm tra xung đột với lịch đã đặt
+        const startMs = start.getTime();
+        const endMs = end.getTime();
+        const conflict = blockedDates.find(function(d) {
+            const bStart = new Date(d.from).getTime();
+            const bEnd = new Date(d.to).getTime();
+            return startMs <= bEnd && endMs >= bStart;
+        });
+
+        if (conflict) {
+            e.preventDefault();
+            errEl.textContent = 'Xe đã có lịch thuê từ ' + conflict.from + ' đến ' + conflict.to + '. Vui lòng chọn khoảng thời gian khác.';
+            return;
+        }
     });
 
     // Hàm mở Dialog Sửa Đánh Giá
@@ -339,6 +393,9 @@
         var modal = new bootstrap.Modal(document.getElementById('deleteFeedbackModal'));
         modal.show();
     }
+
+    // Render thông tin lịch bận
+    renderBookedInfo();
     /*]]>*/
 </script>
 

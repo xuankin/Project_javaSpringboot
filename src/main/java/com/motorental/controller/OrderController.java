@@ -65,9 +65,9 @@ public class OrderController {
             OrderDto order = orderService.createOrderFromCart(userId, createOrderDto);
 
             // 2. [QUAN TRỌNG] Kiểm tra phương thức thanh toán để điều hướng
-            // Nếu khách chọn VNPAY -> Chuyển sang PaymentController để tạo URL
+            // Nếu khách chọn VNPAY -> Chuyển sang trang xác nhận trước khi vào VNPay
             if ("VNPAY".equalsIgnoreCase(createOrderDto.getPaymentMethod())) {
-                return "redirect:/payments/vnpay/" + order.getId();
+                return "redirect:/payments/vnpay/preview/" + order.getId();
             }
 
             // Nếu là Tiền mặt (hoặc mặc định) -> Về trang chi tiết đơn

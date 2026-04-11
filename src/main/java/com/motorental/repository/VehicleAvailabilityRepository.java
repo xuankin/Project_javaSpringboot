@@ -32,4 +32,9 @@ public interface VehicleAvailabilityRepository extends JpaRepository<VehicleAvai
     @Modifying
     @Query("DELETE FROM VehicleAvailability va WHERE va.order.id = :orderId")
     void deleteByOrderId(@Param("orderId") Long orderId);
+
+    @Modifying
+    @Query("UPDATE VehicleAvailability va SET va.status = :status WHERE va.order.id = :orderId")
+    void updateStatusByOrderId(@Param("orderId") Long orderId,
+                               @Param("status") VehicleAvailability.AvailabilityStatus status);
 }

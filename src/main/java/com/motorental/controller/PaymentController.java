@@ -1,6 +1,8 @@
 package com.motorental.controller;
 
 import com.motorental.dto.payment.CreatePaymentDto;
+import com.motorental.entity.RentalOrder;
+import com.motorental.repository.RentalOrderRepository;
 import com.motorental.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -9,13 +11,17 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.security.Principal;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 @Controller
 @RequiredArgsConstructor
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final RentalOrderRepository orderRepository;
 
     // --- Các hàm cũ giữ nguyên ---
     @GetMapping("/my-payments")
@@ -42,6 +48,38 @@ public class PaymentController {
             return "redirect:/payments/create/" + orderId;
         }
         return "redirect:/orders/my-orders";
+    }
+
+    // --- [MỚI] Trang xác nhận trước khi vào VNPay ---
+    @GetMapping("/payments/vnpay/preview/{orderId}")
+    public String showVnpayPreview(@PathVariable("orderId") Long orderId,
+                                   Model model,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            RentalOrder order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+            BigDecimal total = order.getTotalPrice() != null ? order.getTotalPrice() : BigDecimal.ZERO;
+
+            // Tạo mã giao dịch tạm (để hiển thị cho user, sẽ được tạo lại khi submit)
+            String previewTxnRef = "VNP" + System.currentTimeMillis();
+
+            // Format số tiền dạng tiếng Việt
+            NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
+            String formattedAmount = nf.format(total) + " VNĐ";
+
+            model.addAttribute("orderId", orderId);
+            model.addAttribute("orderCode", order.getOrderCode());
+            model.addAttribute("amount", total);
+            model.addAttribute("formattedAmount", formattedAmount);
+            model.addAttribute("previewTxnRef", previewTxnRef);
+            model.addAttribute("orderInfo", "Thanh toan don hang " + order.getOrderCode());
+
+            return "payments/vnpay-preview";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy đơn hàng: " + e.getMessage());
+            return "redirect:/orders/my-orders";
+        }
     }
 
     // --- [ĐÃ SỬA] Hàm xử lý VNPay: Hỗ trợ cả GET (từ redirect) và POST ---

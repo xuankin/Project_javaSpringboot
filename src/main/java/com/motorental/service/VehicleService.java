@@ -69,8 +69,10 @@ public class VehicleService {
     }
 
     public List<VehicleAvailability> getFutureBookings(Long vehicleId) {
+        // Chỉ lấy BOOKED (xe đang được đặt/thuê)
+        // COMPLETED = đã trả xe → không nên block ngày mới
         return availabilityRepository.findFutureBookings(vehicleId, List
-                .of(VehicleAvailability.AvailabilityStatus.BOOKED, VehicleAvailability.AvailabilityStatus.COMPLETED));
+                .of(VehicleAvailability.AvailabilityStatus.BOOKED));
     }
 
     // --- ADMIN: CREATE & UPDATE ---
