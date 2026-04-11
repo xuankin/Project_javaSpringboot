@@ -44,9 +44,10 @@ public class OrderService {
             throw new RuntimeException("Giỏ hàng trống!");
         }
 
+        // Chỉ kiểm tra BOOKED (xe đang được đặt/chưa trả)
+        // COMPLETED = đã trả xe → cho phép thuê thời gian khác
         List<VehicleAvailability.AvailabilityStatus> busyStatuses = List.of(
-                VehicleAvailability.AvailabilityStatus.BOOKED,
-                VehicleAvailability.AvailabilityStatus.COMPLETED
+                VehicleAvailability.AvailabilityStatus.BOOKED
         );
 
         for (RentalCartItem item : cart.getItems()) {
@@ -184,6 +185,10 @@ public class OrderService {
 
         if (newStatus == RentalOrder.OrderStatus.CANCELLED) {
             availabilityRepository.deleteByOrderId(orderId);
+        } else if (newStatus == RentalOrder.OrderStatus.COMPLETED) {
+            // Cập nhật trạng thái availability thành COMPLETED
+            // để không block ngày mới khi xe đã được trả
+            availabilityRepository.updateStatusByOrderId(orderId, VehicleAvailability.AvailabilityStatus.COMPLETED);
         }
 
         order.setStatus(newStatus);
