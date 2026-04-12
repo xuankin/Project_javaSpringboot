@@ -411,6 +411,19 @@ function connect() {
             markMessagesAsRead();
         });
 
+        // Lắng nghe admin typing
+        stompClient.subscribe('/user/queue/typing', function(payload) {
+            var msg = JSON.parse(payload.body);
+            if(msg.type === 'TYPING') {
+                showTyping();
+                if(window.typingTimeout) clearTimeout(window.typingTimeout);
+                window.typingTimeout = setTimeout(hideTyping, 3000);
+            }
+        });
+
+        // Inform admin that user is online
+        stompClient.send('/app/chat.online', {}, JSON.stringify({ type: 'ONLINE' }));
+
         // Load lịch sử sau khi connect thành công
         loadHistory();
 
@@ -488,10 +501,6 @@ function sendMessage() {
     sendBtn.disabled = true;
     setTimeout(function() { sendBtn.disabled = false; }, 300);
     scrollBottom();
-
-    // Giả lập typing indicator của admin
-    showTyping();
-    setTimeout(hideTyping, 2000);
 }
 
 // ---- UPLOAD IMAGE ----
@@ -513,10 +522,9 @@ fileInput.addEventListener('change', function() {
     .then(function(res) { return res.json(); })
     .then(function(data) {
         if (data.url) {
-            var msgContent = "[IMAGE]" + data.url;
-            var chatMsg = { content: msgContent, type: 'CHAT' };
+            var chatMsg = { content: 'Đã gửi một ảnh', imageUrl: data.url, type: 'IMAGE' };
             stompClient.send('/app/chat.sendMessage', {}, JSON.stringify(chatMsg));
-            appendMessage({ content: msgContent, adminSender: false, timestamp: new Date().toISOString() });
+            appendMessage({ content: 'Đã gửi một ảnh', imageUrl: data.url, type: 'IMAGE', adminSender: false, timestamp: new Date().toISOString() });
         }
     })
     .catch(function(err) { console.error("Upload error", err); })
@@ -577,8 +585,8 @@ function appendMessage(msg) {
     var bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
     
-    if (msg.content && msg.content.startsWith('[IMAGE]')) {
-        var imgUrl = msg.content.substring(7);
+    if ((msg.content && msg.content.startsWith('[IMAGE]')) || msg.type === 'IMAGE' || msg.imageUrl) {
+        var imgUrl = msg.imageUrl ? msg.imageUrl : msg.content.substring(7);
         bubble.innerHTML = `<img src="${imgUrl}" style="max-width: 100%; border-radius: 8px; cursor: pointer;" onclick="window.open(this.src, '_blank')" alt="image" />`;
         bubble.style.padding = '5px';
         bubble.style.background = isAdmin ? 'transparent' : 'rgba(0, 132, 255, 0.1)';
@@ -642,8 +650,20 @@ function escapeHtml(str) {
 }
 
 // Events
+var userIsTyping = false;
+var userTypingTimeout = null;
+
 chatInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') sendMessage();
+    if (e.key === 'Enter') {
+        sendMessage();
+    } else {
+        if (!userIsTyping && stompClient) {
+            userIsTyping = true;
+            stompClient.send('/app/chat.typing', {}, JSON.stringify({ type: 'TYPING' }));
+        }
+        if(userTypingTimeout) clearTimeout(userTypingTimeout);
+        userTypingTimeout = setTimeout(() => { userIsTyping = false; }, 2000);
+    }
 });
 sendBtn.addEventListener('click', sendMessage);
 

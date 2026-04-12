@@ -39,6 +39,11 @@ public class ChatController {
             chatMessage.setSender(principal.getName());
         }
         chatService.saveMessage(chatMessage, false);
+        
+        // Push notification update to Admin
+        messagingTemplate.convertAndSend("/topic/admin.notifications", 
+            java.util.Map.of("type", "NEW_MESSAGE", "sender", chatMessage.getSender()));
+            
         return chatMessage;
     }
 
@@ -50,6 +55,35 @@ public class ChatController {
                 "/queue/reply",
                 chatMessage
         );
+        
+        // Push notification update to the specific User
+        messagingTemplate.convertAndSendToUser(
+                chatMessage.getReceiver(),
+                "/queue/notifications",
+                java.util.Map.of("type", "NEW_MESSAGE", "sender", "Admin")
+        );
+    }
+
+    @MessageMapping("/chat.typing")
+    public void typing(@Payload ChatMessage chatMessage, Principal principal) {
+        if (principal != null) {
+            chatMessage.setSender(principal.getName());
+        }
+        // If user is sending, broadcast to admin. If admin is replying, broadcast to user.
+        if (chatMessage.getReceiver() == null || chatMessage.getReceiver().isEmpty() || "Admin".equals(chatMessage.getReceiver())) {
+            messagingTemplate.convertAndSend("/topic/admin.typing", chatMessage);
+        } else {
+            messagingTemplate.convertAndSendToUser(chatMessage.getReceiver(), "/queue/typing", chatMessage);
+        }
+    }
+
+    @MessageMapping("/chat.online")
+    public void online(@Payload ChatMessage chatMessage, Principal principal) {
+        if (principal != null) {
+            chatMessage.setSender(principal.getName());
+        }
+        // Broadcast user's online status to admin
+        messagingTemplate.convertAndSend("/topic/admin.online", chatMessage);
     }
 
     // --- PAGES ---
@@ -106,6 +140,16 @@ public class ChatController {
             return ResponseEntity.ok(chatService.getUnreadCountFromUserToAdmin(user));
         }
         return ResponseEntity.ok(chatService.getUnreadCount("Admin"));
+    }
+
+    @GetMapping("/api/notifications/unread-total")
+    @ResponseBody
+    public ResponseEntity<Long> getTotalUnreadNotifications(Principal principal) {
+        if (principal == null) return ResponseEntity.ok(0L);
+        // Hiện tại gộp chung với chat, sau này có thể thêm count của System Notification.
+        // Đối chiếu role để lấy count phù hợp.
+        long unreadChat = chatService.getUnreadCount(principal.getName());
+        return ResponseEntity.ok(unreadChat);
     }
 
     @GetMapping("/api/chat/mark-read")

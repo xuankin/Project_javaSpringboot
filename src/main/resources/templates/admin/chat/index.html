@@ -117,10 +117,13 @@
             item.onclick = function() { selectUser(username); };
             item.innerHTML = `
                 <div class="d-flex justify-content-between align-items-center w-100">
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center position-relative">
                         <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3" style="width: 35px; height: 35px;">
                             ${username.charAt(0).toUpperCase()}
                         </div>
+                        <span id="online-dot-${username}" class="position-absolute bottom-0 start-0 p-1 bg-success border border-light rounded-circle" style="display: none; margin-left: 25px; margin-bottom: 5px;">
+                            <span class="visually-hidden">New alerts</span>
+                        </span>
                         <div>
                             <h6 class="mb-0 text-dark user-name">${username}</h6>
                         </div>
@@ -160,7 +163,7 @@
                          chatBox.innerHTML = '<div class="text-center text-muted mt-5">Chưa có tin nhắn nào.</div>';
                     }
                     msgs.forEach(msg => {
-                        renderMessage(msg.content, msg.adminSender);
+                        renderMessage(msg, msg.adminSender);
                     });
                     scrollToBottom();
                     markUserAsReadInDB(username);
@@ -181,12 +184,55 @@
                     var msg = JSON.parse(payload.body);
                     handleIncomingMessage(msg);
                 });
+
+                stompClient.subscribe('/topic/admin.typing', function (payload) {
+                    var msg = JSON.parse(payload.body);
+                    if(msg.type === 'TYPING' && selectedUser === msg.sender) {
+                        showAdminTypingIndicator();
+                    }
+                });
+
+                stompClient.subscribe('/topic/admin.online', function (payload) {
+                   var msg = JSON.parse(payload.body);
+                   if (msg.type === 'ONLINE') {
+                       var dot = document.getElementById('online-dot-' + msg.sender);
+                       if (dot) dot.style.display = 'inline-block';
+                       // Hide after some time if no heartbeat is implemented
+                       if (window['onlineTimeout_' + msg.sender]) clearTimeout(window['onlineTimeout_' + msg.sender]);
+                       window['onlineTimeout_' + msg.sender] = setTimeout(function() {
+                           if (dot) dot.style.display = 'none';
+                       }, 30000);
+                   }
+                });
             });
         }
 
+        var adminTypingTimeout = null;
+        function showAdminTypingIndicator() {
+            var chatBox = document.getElementById('admin-chat-content');
+            var existing = document.getElementById('admin-typing-indicator');
+            if (!existing) {
+                var div = document.createElement('div');
+                div.id = 'admin-typing-indicator';
+                div.className = 'd-flex mb-3 justify-content-start';
+                div.innerHTML = `<div class="p-2 rounded-3 bg-white text-dark shadow-sm text-muted" style="font-size: 0.85rem;"><i>Khách hàng đang nhập...</i></div>`;
+                chatBox.appendChild(div);
+                scrollToBottom();
+            }
+            if(adminTypingTimeout) clearTimeout(adminTypingTimeout);
+            adminTypingTimeout = setTimeout(() => {
+                var ind = document.getElementById('admin-typing-indicator');
+                if(ind) ind.remove();
+            }, 3000);
+        }
+
         function handleIncomingMessage(msg) {
+            // Remove typing indicator if exists
+            var ind = document.getElementById('admin-typing-indicator');
+            if (ind) ind.remove();
+            
             if (selectedUser === msg.sender) {
-                renderMessage(msg.content, false);
+                renderMessage(msg, false);
                 scrollToBottom();
                 markUserAsReadInDB(msg.sender);
                 var item = document.getElementById('user-item-' + msg.sender);
@@ -220,20 +266,21 @@
                     type: 'CHAT'
                 };
                 stompClient.send("/app/chat.reply", {}, JSON.stringify(chatMessage));
-                renderMessage(content, true);
+                renderMessage(chatMessage, true);
                 input.value = '';
                 scrollToBottom();
             }
         }
 
-        function renderMessage(content, isMe) {
+        function renderMessage(msgObj, isMe) {
+            var content = msgObj.content;
             var chatBox = document.getElementById('admin-chat-content');
             var div = document.createElement('div');
             div.className = 'd-flex mb-3 ' + (isMe ? 'justify-content-end' : 'justify-content-start');
             
             var msgHtml = '';
-            if (content && content.startsWith('[IMAGE]')) {
-                var imgUrl = content.substring(7);
+            if ((content && content.startsWith('[IMAGE]')) || msgObj.type === 'IMAGE' || msgObj.imageUrl) {
+                var imgUrl = msgObj.imageUrl ? msgObj.imageUrl : content.substring(7);
                 msgHtml = `<img src="${imgUrl}" style="max-width: 300px; max-height: 300px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" onclick="window.open(this.src, '_blank')" alt="image" />`;
             } else {
                 msgHtml = `
@@ -261,7 +308,16 @@
             }
         }
 
-        function handleAdminEnter(e) { if(e.key === 'Enter') sendAdminReply(); }
+        var adminTypingEventTimeout = null;
+        function handleAdminEnter(e) { 
+            if(e.key === 'Enter') {
+                sendAdminReply(); 
+            } else {
+                if(selectedUser && stompClient) {
+                    stompClient.send('/app/chat.typing', {}, JSON.stringify({ type: 'TYPING', receiver: selectedUser }));
+                }
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             var fileInput = document.getElementById('admin-chat-file-input');
@@ -288,15 +344,15 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.url) {
-                            var msgContent = "[IMAGE]" + data.url;
                             var chatMessage = {
                                 sender: 'Admin',
                                 receiver: selectedUser,
-                                content: msgContent,
-                                type: 'CHAT'
+                                content: 'Đã gửi một ảnh',
+                                imageUrl: data.url,
+                                type: 'IMAGE'
                             };
                             stompClient.send("/app/chat.reply", {}, JSON.stringify(chatMessage));
-                            renderMessage(msgContent, true);
+                            renderMessage(chatMessage, true);
                             scrollToBottom();
                         }
                     })

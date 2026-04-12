@@ -22,6 +22,12 @@ public class ChatMessage {
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String content;   // Nội dung
 
+    @Column(columnDefinition = "NVARCHAR(500)")
+    private String imageUrl;  // URL ảnh đính kèm
+
+    @Column(length = 20)
+    private String messageType; // TEXT, IMAGE, SYSTEM
+
     private LocalDateTime timestamp; // Thời gian gửi
 
     // Đánh dấu tin nhắn là của ai để dễ query
