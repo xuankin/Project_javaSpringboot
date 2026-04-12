@@ -15,9 +15,10 @@ public class ChatMessage {
     private String sender;    // Người gửi
     private String receiver;  // Người nhận (dùng khi admin reply)
     private String content;   // Nội dung
-    private MessageType type;
+    private String imageUrl;  // Image URL
+    private MessageType type; // Message type (CHAT, JOIN, LEAVE, IMAGE, TYPING, ONLINE, OFFLINE)
 
     public enum MessageType {
-        CHAT, JOIN, LEAVE
+        CHAT, JOIN, LEAVE, IMAGE, TYPING, ONLINE, OFFLINE
     }
 }

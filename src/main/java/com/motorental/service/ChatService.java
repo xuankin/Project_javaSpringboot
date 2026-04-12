@@ -13,10 +13,14 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
 
     public ChatMessage saveMessage(com.motorental.dto.chat.ChatMessage dto, boolean isAdmin) {
+        String type = dto.getType() != null ? dto.getType().name() : "TEXT";
+
         ChatMessage message = ChatMessage.builder()
                 .sender(isAdmin ? "Admin" : dto.getSender())
                 .receiver(isAdmin ? dto.getReceiver() : "Admin")
                 .content(dto.getContent())
+                .imageUrl(dto.getImageUrl())
+                .messageType(type)
                 .timestamp(LocalDateTime.now())
                 .isAdminSender(isAdmin)
                 .build();
