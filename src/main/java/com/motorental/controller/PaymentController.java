@@ -1,11 +1,15 @@
 package com.motorental.controller;
 
 import com.motorental.dto.payment.CreatePaymentDto;
+import com.motorental.entity.Payment;
 import com.motorental.entity.RentalOrder;
+import com.motorental.repository.PaymentRepository;
 import com.motorental.repository.RentalOrderRepository;
 import com.motorental.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,13 +19,16 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Map;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class PaymentController {
 
     private final PaymentService paymentService;
     private final RentalOrderRepository orderRepository;
+    private final PaymentRepository paymentRepository;
 
     // --- Các hàm cũ giữ nguyên ---
     @GetMapping("/my-payments")
@@ -108,22 +115,80 @@ public class PaymentController {
         }
     }
 
-    // --- Hàm Callback giữ nguyên ---
+    // --- Callback (Return URL - phía client redirect về) ---
     @GetMapping("/payments/vnpay/callback")
-    public String vnpayCallback(HttpServletRequest request, RedirectAttributes redirectAttributes) {
+    public String vnpayCallback(HttpServletRequest request, Model model, RedirectAttributes redirectAttributes) {
         try {
             paymentService.processVNPayCallback(request);
             String responseCode = request.getParameter("vnp_ResponseCode");
+            String txnRef = request.getParameter("vnp_TxnRef");
+            String orderCode = request.getParameter("vnp_OrderInfo");
+
+            // Tìm orderId từ transactionId để redirect đúng trang
+            Long orderId = paymentRepository.findAll().stream()
+                    .filter(p -> p.getTransactionId() != null && p.getTransactionId().equals(txnRef))
+                    .findFirst()
+                    .map(p -> p.getRentalOrder() != null ? p.getRentalOrder().getId() : null)
+                    .orElse(null);
+
+            model.addAttribute("responseCode", responseCode);
+            model.addAttribute("txnRef", txnRef);
+            model.addAttribute("orderId", orderId);
+            model.addAttribute("success", "00".equals(responseCode));
 
             if ("00".equals(responseCode)) {
-                redirectAttributes.addFlashAttribute("success", "Thanh toán thành công! Đơn hàng đã được xác nhận.");
+                log.info("[VNPay Callback] Payment success, txnRef={}", txnRef);
             } else {
-                redirectAttributes.addFlashAttribute("error", "Giao dịch thất bại. Mã lỗi: " + responseCode);
+                log.warn("[VNPay Callback] Payment failed, code={}, txnRef={}", responseCode, txnRef);
             }
+
+            return "payments/vnpay-result";
+
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("[VNPay Callback] Error: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Lỗi xác thực: " + e.getMessage());
+            return "redirect:/orders/my-orders";
         }
-        return "redirect:/orders/my-orders";
+    }
+
+    // --- [MỚI] IPN Endpoint - Server-to-Server từ VNPay ---
+    @PostMapping("/payments/vnpay/ipn")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> vnpayIPN(HttpServletRequest request) {
+        log.info("[VNPay IPN] Received IPN request from VNPay");
+        Map<String, String> response = paymentService.processVNPayIPN(request);
+        return ResponseEntity.ok(response);
+    }
+
+    // --- [MỚI] API kiểm tra trạng thái thanh toán (AJAX polling) ---
+    @GetMapping("/api/payments/status/{orderId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getPaymentStatus(@PathVariable("orderId") Long orderId) {
+        return ResponseEntity.ok(paymentService.getPaymentStatus(orderId));
+    }
+
+    // --- [MỚI] Retry: cho phép user thử lại khi thanh toán thất bại ---
+    @GetMapping("/payments/retry/{orderId}")
+    public String retryPayment(@PathVariable("orderId") Long orderId, RedirectAttributes redirectAttributes) {
+        try {
+            RentalOrder order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+            Payment.PaymentStatus currentStatus = order.getPayment() != null
+                    ? order.getPayment().getPaymentStatus()
+                    : null;
+
+            if (Payment.PaymentStatus.COMPLETED.equals(currentStatus)) {
+                redirectAttributes.addFlashAttribute("error", "Đơn hàng đã thanh toán thành công, không cần thử lại.");
+                return "redirect:/orders/my-orders";
+            }
+
+            log.info("[Retry Payment] Retrying VNPay for orderId={}", orderId);
+            return "redirect:/payments/vnpay/preview/" + orderId;
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+            return "redirect:/orders/my-orders";
+        }
     }
 }

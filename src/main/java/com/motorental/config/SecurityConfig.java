@@ -44,6 +44,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // Bỏ qua CSRF cho IPN endpoint vì VNPay server gọi không mang CSRF token
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(
+                                "/payments/vnpay/ipn",
+                                "/payments/vnpay/callback"
+                        )
+                )
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -54,7 +61,12 @@ public class SecurityConfig {
                                 "/vehicles",
                                 "/vehicles/**",
                                 "/css/**", "/js/**", "/images/**", "/uploads/**", "/webjars/**",
-                                "/ws/**","/chat"
+                                "/ws/**", "/chat",
+                                // VNPay endpoints công khai (VNPay server gọi vào)
+                                "/payments/vnpay/ipn",
+                                "/payments/vnpay/callback",
+                                // API trạng thái thanh toán (AJAX)
+                                "/api/payments/status/**"
                         ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(
@@ -63,9 +75,10 @@ public class SecurityConfig {
                                 "/my-orders",
                                 "/payments/**",
                                 "/profile",
-                                "/feedbacks/add",
+                                "/feedbacks/**",
                                 "/user/chat",
-                                "/api/chat/**"
+                                "/api/chat/**",
+                                "/tracking"
                         ).authenticated()
                         .anyRequest().authenticated()
                 )
