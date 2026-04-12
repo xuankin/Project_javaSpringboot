@@ -94,6 +94,7 @@ public class RentalOrder extends BaseEntity {
     public enum OrderStatus {
         PENDING("Pending"),
         CONFIRMED("Confirmed"),
+        ACTIVE("Active"),
         COMPLETED("Completed"),
         CANCELLED("Cancelled");
 

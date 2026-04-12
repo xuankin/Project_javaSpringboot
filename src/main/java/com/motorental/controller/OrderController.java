@@ -83,11 +83,24 @@ public class OrderController {
 
     // --- Các hàm cũ giữ nguyên ---
     @GetMapping("/my-orders")
-    public String myOrders(Model model, Principal principal) {
+    public String myOrders(
+            @RequestParam(name = "status", required = false, defaultValue = "ALL") String status,
+            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+            Model model, Principal principal) {
+        
         if (principal == null) return "redirect:/login";
 
         String userId = userService.findByUsername(principal.getName()).getId();
-        model.addAttribute("orders", orderService.getOrdersByUserId(userId));
+        
+        // Tạo pageable, giả sử 5 đơn hàng/trang
+        org.springframework.data.domain.PageRequest pageable = org.springframework.data.domain.PageRequest.of(page, 5);
+        org.springframework.data.domain.Page<OrderDto> orderPage = orderService.getOrdersPageable(userId, status, pageable);
+
+        model.addAttribute("orders", orderPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", orderPage.getTotalPages());
+        model.addAttribute("totalItems", orderPage.getTotalElements());
+        model.addAttribute("currentStatus", status);
 
         return "orders/my-orders";
     }
