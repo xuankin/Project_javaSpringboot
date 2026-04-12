@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,6 +32,7 @@ public class OrderService {
     private final EmailService emailService;
     private final DiscountCodeService discountCodeService; // Injected
     private final ModelMapper modelMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional(rollbackFor = Exception.class)
     public OrderDto createOrderFromCart(String userId, CreateOrderDto createOrderDto) {
@@ -157,6 +159,28 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    public org.springframework.data.domain.Page<OrderDto> getOrdersPageable(String userId, String status, Pageable pageable) {
+        org.springframework.data.domain.Page<RentalOrder> orders;
+        if (StringUtils.hasText(status) && !status.equalsIgnoreCase("ALL")) {
+            RentalOrder.OrderStatus orderStatus = RentalOrder.OrderStatus.valueOf(status.toUpperCase());
+            orders = orderRepository.findByUserIdAndStatus(userId, orderStatus, pageable);
+        } else {
+            orders = orderRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        }
+        return orders.map(this::mapToDto);
+    }
+
+    public org.springframework.data.domain.Page<OrderDto> getAllOrdersPageable(String status, Pageable pageable) {
+        org.springframework.data.domain.Page<RentalOrder> orders;
+        if (StringUtils.hasText(status) && !status.equalsIgnoreCase("ALL")) {
+            RentalOrder.OrderStatus orderStatus = RentalOrder.OrderStatus.valueOf(status.toUpperCase());
+            orders = orderRepository.findAllByStatus(orderStatus, pageable);
+        } else {
+            orders = orderRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
+        return orders.map(this::mapToDto);
+    }
+
     @Transactional
     public void cancelOrder(Long orderId, String userId) {
         RentalOrder order = orderRepository.findById(orderId)
@@ -198,6 +222,23 @@ public class OrderService {
             emailService.sendOrderStatusUpdateEmail(order.getUser().getEmail(), order, order.getStatus().name(), statusStr);
         } catch (Exception e) {
             System.err.println("Cảnh báo: Không thể gửi email cập nhật trạng thái. Lỗi: " + e.getMessage());
+        }
+
+        // WebSocket Push Notification
+        try {
+            String title = "Cập nhật đơn hàng";
+            String contentMessage = "Đơn hàng " + order.getOrderCode() + " đã chuyển sang trạng thái " + newStatus.getDisplayName();
+            messagingTemplate.convertAndSendToUser(
+                    order.getUser().getUsername(),
+                    "/queue/notifications",
+                    java.util.Map.of(
+                            "type", "NEW_MESSAGE",
+                            "title", title,
+                            "content", contentMessage
+                    )
+            );
+        } catch (Exception e) {
+            System.err.println("Lỗi gửi websocket notification: " + e.getMessage());
         }
     }
 

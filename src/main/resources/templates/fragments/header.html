@@ -96,7 +96,9 @@
     function handleNewNotification(msg) {
         if (msg.type === 'NEW_MESSAGE') {
             checkUnreadMsgs(); // Fetch lại tổng badge
-            addNotificationItem("Tin nhắn mới từ Hỗ Trợ", "Bạn có một tin nhắn mới.");
+            var title = msg.title ? msg.title : "Tin nhắn mới từ Hỗ Trợ";
+            var content = msg.content ? msg.content : "Bạn có một tin nhắn mới.";
+            addNotificationItem(title, content);
         }
     }
 

@@ -46,6 +46,17 @@ public class GpsSimulationService {
                 history.setVehicle(vehicle);
                 history.setLatitude(vehicle.getLatitude());
                 history.setLongitude(vehicle.getLongitude());
+
+                // Tìm đơn hàng đang ACTIVE cho xe này để gán (nếu có)
+                List<com.motorental.entity.RentalOrder> activeOrders = vehicle.getOrderDetails().stream()
+                        .map(com.motorental.entity.OrderDetail::getRentalOrder)
+                        .filter(o -> o.getStatus() == com.motorental.entity.RentalOrder.OrderStatus.ACTIVE)
+                        .toList();
+                
+                if (!activeOrders.isEmpty()) {
+                    history.setOrder(activeOrders.get(0));
+                }
+
                 historyRepository.save(history);
             }
         }

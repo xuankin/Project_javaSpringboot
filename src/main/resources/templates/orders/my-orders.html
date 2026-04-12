@@ -7,6 +7,28 @@
 <div class="container mt-5">
     <h2 class="mb-4">Đơn hàng của tôi</h2>
 
+    <!-- Tabs Filter Status -->
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a th:classappend="${currentStatus == 'ALL' ? 'active' : ''}" class="nav-link" th:href="@{/orders/my-orders(status='ALL')}">Tất cả</a>
+        </li>
+        <li class="nav-item">
+            <a th:classappend="${currentStatus == 'PENDING' ? 'active' : ''}" class="nav-link" th:href="@{/orders/my-orders(status='PENDING')}">Chờ xử lý</a>
+        </li>
+        <li class="nav-item">
+            <a th:classappend="${currentStatus == 'CONFIRMED' ? 'active' : ''}" class="nav-link" th:href="@{/orders/my-orders(status='CONFIRMED')}">Đã xác nhận</a>
+        </li>
+        <li class="nav-item">
+            <a th:classappend="${currentStatus == 'ACTIVE' ? 'active' : ''}" class="nav-link" th:href="@{/orders/my-orders(status='ACTIVE')}">Đang thuê</a>
+        </li>
+        <li class="nav-item">
+            <a th:classappend="${currentStatus == 'COMPLETED' ? 'active' : ''}" class="nav-link" th:href="@{/orders/my-orders(status='COMPLETED')}">Hoàn thành</a>
+        </li>
+        <li class="nav-item">
+            <a th:classappend="${currentStatus == 'CANCELLED' ? 'active' : ''}" class="nav-link" th:href="@{/orders/my-orders(status='CANCELLED')}">Đã hủy</a>
+        </li>
+    </ul>
+
     <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
@@ -38,7 +60,8 @@
                     <span th:class="'badge ' +
                         (${order.status.name() == 'PENDING'} ? 'bg-warning' :
                         (${order.status.name() == 'CONFIRMED'} ? 'bg-primary' :
-                        (${order.status.name() == 'COMPLETED'} ? 'bg-success' : 'bg-danger')))"
+                        (${order.status.name() == 'ACTIVE'} ? 'bg-info text-dark' :
+                        (${order.status.name() == 'COMPLETED'} ? 'bg-success' : 'bg-danger'))))"
                           th:text="${order.status}">
                     </span>
                 </td>
@@ -47,11 +70,18 @@
                         <i class="fas fa-eye"></i> Chi tiết
                     </a>
 
+                    <a th:if="${order.status.name() == 'ACTIVE'}"
+                       th:href="@{/orders/detail/{id}/track(id=${order.id})}"
+                       class="btn btn-sm btn-primary"
+                       title="Xem vị trí xe">
+                        <i class="fas fa-map-marker-alt"></i> Tracking
+                    </a>
+
                     <a th:if="${order.status.name() == 'COMPLETED'}"
                        th:href="@{/vehicles/detail/{id}(id=${order.vehicleId})}"
                        class="btn btn-sm btn-outline-warning"
                        title="Viết đánh giá cho xe này">
-                        <i class="fas fa-star"></i> Đánh giá xe
+                        <i class="fas fa-star"></i> Đánh giá
                     </a>
                 </td>
             </tr>
@@ -62,6 +92,24 @@
     <div th:if="${#lists.isEmpty(orders)}" class="alert alert-warning text-center">
         Bạn chưa có đơn hàng nào. <a href="/" class="alert-link">Đặt xe ngay!</a>
     </div>
+
+    <!-- Phân trang -->
+    <nav th:if="${totalPages > 1}" aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/orders/my-orders(status=${currentStatus}, page=${currentPage - 1})}" tabindex="-1">Trước</a>
+            </li>
+            
+            <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
+                class="page-item" th:classappend="${currentPage == i ? 'active' : ''}">
+                <a class="page-link" th:href="@{/orders/my-orders(status=${currentStatus}, page=${i})}" th:text="${i + 1}"></a>
+            </li>
+            
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/orders/my-orders(status=${currentStatus}, page=${currentPage + 1})}">Sau</a>
+            </li>
+        </ul>
+    </nav>
 </div>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>

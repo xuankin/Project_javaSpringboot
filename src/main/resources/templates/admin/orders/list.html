@@ -21,6 +21,28 @@
     </div>
 
     <div class="card shadow-sm">
+        <div class="card-header bg-white pt-3 pb-0">
+            <ul class="nav nav-tabs border-bottom-0">
+                <li class="nav-item">
+                    <a th:classappend="${currentStatus == 'ALL' ? 'active fw-bold' : ''}" class="nav-link" th:href="@{/admin/orders(status='ALL')}">Tất cả</a>
+                </li>
+                <li class="nav-item">
+                    <a th:classappend="${currentStatus == 'PENDING' ? 'active fw-bold text-warning' : 'text-secondary'}" class="nav-link" th:href="@{/admin/orders(status='PENDING')}">Chờ xử lý</a>
+                </li>
+                <li class="nav-item">
+                    <a th:classappend="${currentStatus == 'CONFIRMED' ? 'active fw-bold text-primary' : 'text-secondary'}" class="nav-link" th:href="@{/admin/orders(status='CONFIRMED')}">Đã xác nhận</a>
+                </li>
+                <li class="nav-item">
+                    <a th:classappend="${currentStatus == 'ACTIVE' ? 'active fw-bold text-info' : 'text-secondary'}" class="nav-link" th:href="@{/admin/orders(status='ACTIVE')}">Đang thuê</a>
+                </li>
+                <li class="nav-item">
+                    <a th:classappend="${currentStatus == 'COMPLETED' ? 'active fw-bold text-success' : 'text-secondary'}" class="nav-link" th:href="@{/admin/orders(status='COMPLETED')}">Hoàn thành</a>
+                </li>
+                <li class="nav-item">
+                    <a th:classappend="${currentStatus == 'CANCELLED' ? 'active fw-bold text-danger' : 'text-secondary'}" class="nav-link" th:href="@{/admin/orders(status='CANCELLED')}">Đã hủy</a>
+                </li>
+            </ul>
+        </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
@@ -50,10 +72,10 @@
                         <td>
                             <span class="badge"
                                   th:classappend="${
-                                    order.status == 'PENDING' ? 'bg-warning text-dark' :
-                                    (order.status == 'CONFIRMED' ? 'bg-primary' :
-                                    (order.status == 'COMPLETED' ? 'bg-success' :
-                                    (order.status == 'CANCELLED' ? 'bg-secondary' : 'bg-danger')))
+                                    order.status.name() == 'PENDING' ? 'bg-warning text-dark' :
+                                    (order.status.name() == 'CONFIRMED' ? 'bg-primary' :
+                                    (order.status.name() == 'ACTIVE' ? 'bg-info text-dark' :
+                                    (order.status.name() == 'COMPLETED' ? 'bg-success' : 'bg-danger')))
                                   }"
                                   th:text="${order.status}">
                             </span>
@@ -72,6 +94,24 @@
             <div th:if="${#lists.isEmpty(orders)}" class="text-center py-4 text-muted">
                 <p>Chưa có đơn hàng nào trong hệ thống.</p>
             </div>
+
+            <!-- Phân trang -->
+            <nav th:if="${totalPages > 1}" aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{/admin/orders(status=${currentStatus}, page=${currentPage - 1})}" tabindex="-1">Trang trước</a>
+                    </li>
+                    
+                    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
+                        class="page-item" th:classappend="${currentPage == i ? 'active' : ''}">
+                        <a class="page-link" th:href="@{/admin/orders(status=${currentStatus}, page=${i})}" th:text="${i + 1}"></a>
+                    </li>
+                    
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{/admin/orders(status=${currentStatus}, page=${currentPage + 1})}">Trang sau</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
 </div>

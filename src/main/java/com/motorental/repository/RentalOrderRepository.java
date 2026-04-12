@@ -18,8 +18,16 @@ public interface RentalOrderRepository extends JpaRepository<RentalOrder, Long> 
     // 1. Lấy danh sách đơn hàng của user, sắp xếp mới nhất trước
     List<RentalOrder> findByUserIdOrderByCreatedAtDesc(String userId);
 
+    Page<RentalOrder> findByUserIdOrderByCreatedAtDesc(String userId, Pageable pageable);
+
+    @Query("SELECT o FROM RentalOrder o WHERE o.user.id = :userId AND o.status = :status ORDER BY o.createdAt DESC")
+    Page<RentalOrder> findByUserIdAndStatus(@Param("userId") String userId, @Param("status") RentalOrder.OrderStatus status, Pageable pageable);
+
     // 2. Lấy tất cả đơn hàng (có hỗ trợ phân trang/sắp xếp)
     Page<RentalOrder> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    @Query("SELECT o FROM RentalOrder o WHERE o.status = :status ORDER BY o.createdAt DESC")
+    Page<RentalOrder> findAllByStatus(@Param("status") RentalOrder.OrderStatus status, Pageable pageable);
 
     // 3. Tìm kiếm đơn hàng
     @Query("SELECT o FROM RentalOrder o WHERE " +

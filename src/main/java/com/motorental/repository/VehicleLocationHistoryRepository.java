@@ -13,5 +13,6 @@ public interface VehicleLocationHistoryRepository extends JpaRepository<VehicleL
     // Lấy 100 điểm gần nhất cho mượt bản đồ
     List<VehicleLocationHistory> findTop100ByVehicleIdOrderByTimestampDesc(Long vehicleId);
 
-    // Mặc dù lấy Top 100 gần nhất, nhưng ta cần đảo ngược để vẽ từ cũ đến mới (Dựa theo timestamp)
+    // Lấy lịch sử theo đơn hàng
+    List<VehicleLocationHistory> findTop100ByOrderIdOrderByTimestampDesc(Long orderId);
 }
