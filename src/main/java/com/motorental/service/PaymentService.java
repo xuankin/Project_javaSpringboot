@@ -241,10 +241,8 @@ public class PaymentService {
             String txnRef = request.getParameter("vnp_TxnRef");
             String responseCode = request.getParameter("vnp_ResponseCode");
 
-            Payment payment = paymentRepository.findAllByOrderByPaymentDateDesc().stream()
-                    .filter(p -> p.getTransactionId() != null && p.getTransactionId().equals(txnRef))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Payment not found"));
+            Payment payment = paymentRepository.findByTransactionId(txnRef)
+                    .orElseThrow(() -> new RuntimeException("Payment not found for txnRef: " + txnRef));
 
             if ("00".equals(responseCode)) {
                 if (payment.getPaymentStatus() != Payment.PaymentStatus.COMPLETED) {
@@ -314,10 +312,8 @@ public class PaymentService {
 
             log.info("[VNPay IPN] txnRef={}, responseCode={}, amount={}", txnRef, responseCode, vnpAmount);
 
-            // 4. Tìm payment theo mã giao dịch
-            Optional<Payment> paymentOpt = paymentRepository.findAllByOrderByPaymentDateDesc().stream()
-                    .filter(p -> p.getTransactionId() != null && p.getTransactionId().equals(txnRef))
-                    .findFirst();
+            // 4. Tìm payment theo mã giao dịch (indexed query, không scan toàn bảng)
+            Optional<Payment> paymentOpt = paymentRepository.findByTransactionId(txnRef);
 
             if (paymentOpt.isEmpty()) {
                 log.warn("[VNPay IPN] Order not found for txnRef={}", txnRef);

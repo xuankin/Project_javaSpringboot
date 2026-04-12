@@ -50,7 +50,7 @@ public class PaymentController {
             paymentService.createCashPayment(orderId);
             redirectAttributes.addFlashAttribute("success", "Đã gửi yêu cầu thanh toán tiền mặt.");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("[Cash Payment] Lỗi xử lý tiền mặt cho orderId={}: {}", orderId, e.getMessage());
             redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
             return "redirect:/payments/create/" + orderId;
         }
@@ -72,7 +72,7 @@ public class PaymentController {
             String previewTxnRef = "VNP" + System.currentTimeMillis();
 
             // Format số tiền dạng tiếng Việt
-            NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
+            NumberFormat nf = NumberFormat.getInstance(Locale.of("vi", "VN"));
             String formattedAmount = nf.format(total) + " VNĐ";
 
             model.addAttribute("orderId", orderId);
@@ -95,23 +95,20 @@ public class PaymentController {
                            HttpServletRequest request,
                            RedirectAttributes redirectAttributes) {
         try {
-            System.out.println(">>> Đang tạo yêu cầu thanh toán VNPay cho Order ID: " + orderId);
+            log.info("[VNPay] Tạo yêu cầu thanh toán cho orderId={}", orderId);
 
             CreatePaymentDto dto = new CreatePaymentDto();
             dto.setOrderId(orderId);
 
-            // Gọi Service tạo URL (Logic trong Service giữ nguyên)
             String paymentUrl = paymentService.createVNPayPaymentUrl(dto, request);
 
-            System.out.println(">>> URL VNPay thành công, đang chuyển hướng: " + paymentUrl);
+            log.info("[VNPay] URL tạo thành công, redirect, orderId={}", orderId);
             return "redirect:" + paymentUrl;
 
         } catch (Exception e) {
-            System.err.println("!!! LỖI TẠO URL VNPAY !!!");
-            e.printStackTrace();
-
+            log.error("[VNPay] Lỗi tạo URL VNPay cho orderId={}: {}", orderId, e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Lỗi tạo cổng thanh toán: " + e.getMessage());
-            return "redirect:/orders/detail/" + orderId; // Quay về trang chi tiết nếu lỗi
+            return "redirect:/orders/detail/" + orderId;
         }
     }
 
@@ -124,10 +121,8 @@ public class PaymentController {
             String txnRef = request.getParameter("vnp_TxnRef");
             String orderCode = request.getParameter("vnp_OrderInfo");
 
-            // Tìm orderId từ transactionId để redirect đúng trang
-            Long orderId = paymentRepository.findAll().stream()
-                    .filter(p -> p.getTransactionId() != null && p.getTransactionId().equals(txnRef))
-                    .findFirst()
+            // Tìm orderId từ transactionId để redirect đúng trang (dùng indexed query thay vì scan toàn bảng)
+            Long orderId = paymentRepository.findByTransactionId(txnRef)
                     .map(p -> p.getRentalOrder() != null ? p.getRentalOrder().getId() : null)
                     .orElse(null);
 
