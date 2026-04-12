@@ -91,8 +91,15 @@ public class CartService {
 
     @Transactional
     public void removeFromCart(String userId, Long cartItemId) {
-        // Cần check quyền sở hữu (UserId) để bảo mật
-        cartItemRepository.deleteById(cartItemId);
+        RentalCartItem item = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("Mục giỏ hàng không tồn tại"));
+        
+        // Kiểm tra quyền sở hữu: Item này phải nằm trong giỏ hàng của chính User đó
+        if (!item.getRentalCart().getUser().getId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền thực hiện hành động này");
+        }
+        
+        cartItemRepository.delete(item);
     }
 
     @Transactional

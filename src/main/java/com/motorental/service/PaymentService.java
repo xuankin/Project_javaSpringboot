@@ -77,11 +77,9 @@ public class PaymentService {
     }
 
     public List<PaymentDto> getPaymentsByUserId(String userId) {
-        return getAllPayments().stream()
-                .filter(p -> {
-                    RentalOrder order = orderRepository.findById(p.getOrderId()).orElse(null);
-                    return order != null && order.getUser().getId().equals(userId);
-                })
+        // [FIX] Sử dụng Pageable.unpaged() hoặc tạo method mới trả về List trong Repo để optimize
+        return paymentRepository.findByUserId(userId, org.springframework.data.domain.Pageable.unpaged()).stream()
+                .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
@@ -143,10 +141,12 @@ public class PaymentService {
         payment.setAmount(total);
         payment.setMethod(Payment.PaymentMethod.VNPAY);
         payment.setPaymentStatus(Payment.PaymentStatus.PENDING);
-
-        String vnp_TxnRef = String.valueOf(System.currentTimeMillis());
-        payment.setTransactionId(vnp_TxnRef);
         payment.setPaymentDate(LocalDateTime.now());
+        payment = paymentRepository.save(payment); // Lưu trước để có ID
+
+        // Sử dụng ID để đảm bảo tính duy nhất
+        String vnp_TxnRef = "PAY" + payment.getId() + "T" + System.currentTimeMillis();
+        payment.setTransactionId(vnp_TxnRef);
         payment.setNotes("VNPay Pending: " + vnp_TxnRef);
         paymentRepository.save(payment);
 
@@ -222,7 +222,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public void processVNPayCallback(HttpServletRequest request) {
+    public boolean processVNPayCallback(HttpServletRequest request) {
         Map<String, String> fields = new HashMap<>();
         for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
             String fieldName = params.nextElement();
@@ -241,8 +241,9 @@ public class PaymentService {
             String txnRef = request.getParameter("vnp_TxnRef");
             String responseCode = request.getParameter("vnp_ResponseCode");
 
+            // [FIX] Dùng findByTransactionId thay vì stream trên toàn bộ DB để tăng hiệu năng và tránh chậm hệ thống
             Payment payment = paymentRepository.findByTransactionId(txnRef)
-                    .orElseThrow(() -> new RuntimeException("Payment not found for txnRef: " + txnRef));
+                    .orElseThrow(() -> new RuntimeException("Payment not found for Transaction ID: " + txnRef));
 
             if ("00".equals(responseCode)) {
                 if (payment.getPaymentStatus() != Payment.PaymentStatus.COMPLETED) {
@@ -257,14 +258,17 @@ public class PaymentService {
                         orderRepository.save(order);
                     }
                 }
+                return true;
             } else {
                 payment.setPaymentStatus(Payment.PaymentStatus.FAILED);
                 payment.setNotes("VNPay Failed. Code: " + responseCode);
                 paymentRepository.save(payment);
+                return false;
             }
         } else {
             // Log lỗi chữ ký nhưng không throw exception để tránh crash trang callback
             log.warn("[VNPay Callback] Invalid checksum! Expected: {}, Got: {}", signValue, vnp_SecureHash);
+            return false;
         }
     }
 

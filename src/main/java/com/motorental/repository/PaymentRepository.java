@@ -14,7 +14,9 @@ import java.util.Optional;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
-    // [FIX] Thêm hàm này để sửa lỗi trong PaymentService
+    // [FIX] Tìm kiếm trực tiếp theo TransactionId để tránh duyệt toàn bộ DB
+    Optional<Payment> findByTransactionId(String transactionId);
+
     List<Payment> findAllByOrderByPaymentDateDesc();
 
     Optional<Payment> findByRentalOrderId(Long rentalOrderId);
