@@ -112,17 +112,17 @@ public class PaymentController {
     @GetMapping("/payments/vnpay/callback")
     public String vnpayCallback(HttpServletRequest request, RedirectAttributes redirectAttributes) {
         try {
-            paymentService.processVNPayCallback(request);
-            String responseCode = request.getParameter("vnp_ResponseCode");
-
-            if ("00".equals(responseCode)) {
+            boolean isSuccess = paymentService.processVNPayCallback(request);
+            
+            if (isSuccess) {
                 redirectAttributes.addFlashAttribute("success", "Thanh toán thành công! Đơn hàng đã được xác nhận.");
             } else {
-                redirectAttributes.addFlashAttribute("error", "Giao dịch thất bại. Mã lỗi: " + responseCode);
+                String responseCode = request.getParameter("vnp_ResponseCode");
+                redirectAttributes.addFlashAttribute("error", "Giao dịch không thành công hoặc chữ ký không hợp lệ. (Mã: " + responseCode + ")");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Lỗi xác thực: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Lỗi xử lý thanh toán: " + e.getMessage());
         }
         return "redirect:/orders/my-orders";
     }

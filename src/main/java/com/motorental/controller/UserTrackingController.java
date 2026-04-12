@@ -41,7 +41,6 @@ public class UserTrackingController {
         LocalDate finalStartDate = (startDate != null) ? startDate : LocalDate.now();
         LocalDate finalEndDate = (endDate != null) ? endDate : LocalDate.now();
         
-        // Đảm bảo startDate không lớn hơn endDate
         if (finalStartDate.isAfter(finalEndDate)) {
             LocalDate temp = finalStartDate;
             finalStartDate = finalEndDate;
@@ -54,7 +53,6 @@ public class UserTrackingController {
         List<UserLocationHistory> history = historyRepository.findByUserIdAndDateRange(
                 user.getId(), startOfDay, endOfDay);
 
-        // Chuyển sang format DTO/Map để tránh lỗi JSON parse ở Thymeleaf
         List<java.util.Map<String, Object>> historyDto = history.stream().map(h -> {
             java.util.Map<String, Object> map = new java.util.HashMap<>();
             map.put("latitude", h.getLatitude());
@@ -64,7 +62,7 @@ public class UserTrackingController {
         }).collect(java.util.stream.Collectors.toList());
 
         model.addAttribute("historyDataJson", historyDto);
-        model.addAttribute("history", history);
+        model.addAttribute("historyCount", historyDto.size());
         model.addAttribute("startDate", finalStartDate);
         model.addAttribute("endDate", finalEndDate);
 
