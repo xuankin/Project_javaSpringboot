@@ -8,6 +8,7 @@ import com.motorental.repository.PaymentRepository;
 import com.motorental.repository.RentalOrderRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -264,8 +266,145 @@ public class PaymentService {
             }
         } else {
             // Log lỗi chữ ký nhưng không throw exception để tránh crash trang callback
-            System.err.println("Invalid Checksum from VNPay Callback!");
+            log.warn("[VNPay Callback] Invalid checksum! Expected: {}, Got: {}", signValue, vnp_SecureHash);
         }
+    }
+
+    // ==================================================================================
+    // VNPay IPN - Instant Payment Notification (Server-to-Server)
+    // ==================================================================================
+
+    /**
+     * Xử lý IPN (Instant Payment Notification) từ VNPay gửi server-to-server.
+     * Trả về Map chứa RspCode và Message theo chuẩn VNPay.
+     * VNPay yêu cầu response: {"RspCode":"00","Message":"Confirm Success"}
+     */
+    @Transactional
+    public Map<String, String> processVNPayIPN(HttpServletRequest request) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            // 1. Thu thập tất cả params từ VNPay
+            Map<String, String> fields = new HashMap<>();
+            for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements(); ) {
+                String fieldName = params.nextElement();
+                String fieldValue = request.getParameter(fieldName);
+                if (fieldValue != null && !fieldValue.isEmpty()) {
+                    fields.put(fieldName, fieldValue);
+                }
+            }
+
+            String vnp_SecureHash = request.getParameter("vnp_SecureHash");
+            fields.remove("vnp_SecureHashType");
+            fields.remove("vnp_SecureHash");
+
+            // 2. Xác minh chữ ký bảo mật
+            String signValue = hashAllFields(fields);
+            if (!signValue.equals(vnp_SecureHash)) {
+                log.warn("[VNPay IPN] Invalid signature! txnRef={}", request.getParameter("vnp_TxnRef"));
+                response.put("RspCode", "97");
+                response.put("Message", "Invalid Checksum");
+                return response;
+            }
+
+            // 3. Lấy thông tin giao dịch
+            String txnRef      = request.getParameter("vnp_TxnRef");
+            String responseCode = request.getParameter("vnp_ResponseCode");
+            String vnpAmountStr = request.getParameter("vnp_Amount");
+            long vnpAmount = Long.parseLong(vnpAmountStr) / 100; // VNPay nhân 100
+
+            log.info("[VNPay IPN] txnRef={}, responseCode={}, amount={}", txnRef, responseCode, vnpAmount);
+
+            // 4. Tìm payment theo mã giao dịch
+            Optional<Payment> paymentOpt = paymentRepository.findAllByOrderByPaymentDateDesc().stream()
+                    .filter(p -> p.getTransactionId() != null && p.getTransactionId().equals(txnRef))
+                    .findFirst();
+
+            if (paymentOpt.isEmpty()) {
+                log.warn("[VNPay IPN] Order not found for txnRef={}", txnRef);
+                response.put("RspCode", "01");
+                response.put("Message", "Order not found");
+                return response;
+            }
+
+            Payment payment = paymentOpt.get();
+
+            // 5. Kiểm tra số tiền khớp không
+            long orderAmount = payment.getAmount().longValue();
+            if (orderAmount != vnpAmount) {
+                log.warn("[VNPay IPN] Amount mismatch! DB={}, VNPay={}", orderAmount, vnpAmount);
+                response.put("RspCode", "04");
+                response.put("Message", "Invalid Amount");
+                return response;
+            }
+
+            // 6. Kiểm tra đơn đã xử lý chưa (tránh xử lý 2 lần)
+            if (payment.getPaymentStatus() == Payment.PaymentStatus.COMPLETED) {
+                log.info("[VNPay IPN] Order already confirmed, txnRef={}", txnRef);
+                response.put("RspCode", "02");
+                response.put("Message", "Order already confirmed");
+                return response;
+            }
+
+            // 7. Cập nhật trạng thái
+            if ("00".equals(responseCode)) {
+                payment.setPaymentStatus(Payment.PaymentStatus.COMPLETED);
+                payment.setPaymentDate(LocalDateTime.now());
+                payment.setNotes("VNPay IPN Success. Ref: " + txnRef);
+                paymentRepository.save(payment);
+
+                RentalOrder order = payment.getRentalOrder();
+                if (order != null) {
+                    order.setStatus(RentalOrder.OrderStatus.CONFIRMED);
+                    orderRepository.save(order);
+                    log.info("[VNPay IPN] Order {} CONFIRMED via IPN", order.getOrderCode());
+                }
+            } else {
+                payment.setPaymentStatus(Payment.PaymentStatus.FAILED);
+                payment.setNotes("VNPay IPN Failed. Code: " + responseCode);
+                paymentRepository.save(payment);
+                log.info("[VNPay IPN] Payment FAILED, code={}, txnRef={}", responseCode, txnRef);
+            }
+
+            response.put("RspCode", "00");
+            response.put("Message", "Confirm Success");
+            return response;
+
+        } catch (Exception e) {
+            log.error("[VNPay IPN] Unexpected error: {}", e.getMessage(), e);
+            response.put("RspCode", "99");
+            response.put("Message", "Unknown error");
+            return response;
+        }
+    }
+
+    /**
+     * Lấy trạng thái payment theo orderId.
+     * Dùng cho AJAX polling hoặc trang kết quả.
+     */
+    public Map<String, Object> getPaymentStatus(Long orderId) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            RentalOrder order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new RuntimeException("Order not found"));
+
+            Payment payment = order.getPayment();
+            if (payment == null) {
+                result.put("status", "NO_PAYMENT");
+                result.put("message", "Chưa có thông tin thanh toán");
+            } else {
+                result.put("status", payment.getPaymentStatus().name());
+                result.put("method", payment.getMethod() != null ? payment.getMethod().name() : "N/A");
+                result.put("amount", payment.getAmount());
+                result.put("transactionId", payment.getTransactionId());
+                result.put("paymentDate", payment.getPaymentDate() != null ? payment.getPaymentDate().toString() : null);
+                result.put("orderCode", order.getOrderCode());
+                result.put("orderStatus", order.getStatus().name());
+            }
+        } catch (Exception e) {
+            result.put("status", "ERROR");
+            result.put("message", e.getMessage());
+        }
+        return result;
     }
 
     private String hashAllFields(Map<String, String> fields) {
