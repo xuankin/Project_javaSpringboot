@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Theo Dõi Vị Trí Xe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/flatly/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 75vh; width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .vehicle-marker { background: transparent; border: none; }
+        .vehicle-marker i { font-size: 28px; color: #dc3545; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav th:replace="~{fragments/header :: header}"></nav>
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="fas fa-map-marker-alt text-primary me-2"></i> Theo dõi hành trình - Đơn <span th:text="${order.orderCode}"></span></h4>
+        <a th:href="@{/orders/my-orders}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Quay lại</a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase text-muted"><i class="fas fa-motorcycle me-1"></i> Xe đang thuê</h6>
+                    <p class="fw-bold mb-1" th:text="${order.vehicleName}"></p>
+                    <hr>
+                    <h6 class="card-title text-uppercase text-muted"><i class="fas fa-clock me-1"></i> Trạng thái GPS</h6>
+                    <p id="gps-status" class="text-success fw-bold"><i class="fas fa-circle-notch fa-spin"></i> Đang tải...</p>
+                    <small class="text-muted" id="last-update">Cập nhật lúc: --</small>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase text-muted"><i class="fas fa-info-circle me-1"></i> Ghi chú lưu ý</h6>
+                    <p class="small text-muted mb-0">Hệ thống sẽ cập nhật tự động vị trí của xe mỗi 5 giây. Nếu bạn không thấy sự thay đổi, có thể tính năng GPS trên xe đang không có tín hiệu mạng.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div id="map"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var orderId = /*[[${order.id}]]*/ null;
+    
+    var map = L.map('map').setView([21.028511, 105.804817], 13);
+    
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var vehicleIcon = L.divIcon({
+        className: 'vehicle-marker',
+        html: '<i class="fas fa-motorcycle"></i>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+    });
+
+    var vehicleMarker = null;
+    var pathLine = null;
+    var latlngs = [];
+
+    function fetchLocation() {
+        if(!orderId) return;
+        
+        fetch(`/orders/api/${orderId}/vehicle-location/history`)
+            .then(res => res.json())
+            .then(data => {
+                if(data && data.length > 0) {
+                    latlngs = [];
+                    data.forEach(loc => latlngs.push([loc.lat, loc.lng]));
+                    
+                    var lastLoc = data[data.length - 1];
+                    var lastLatLng = [lastLoc.lat, lastLoc.lng];
+                    
+                    if(vehicleMarker) {
+                        vehicleMarker.setLatLng(lastLatLng);
+                    } else {
+                        vehicleMarker = L.marker(lastLatLng, {icon: vehicleIcon}).addTo(map);
+                        map.setView(lastLatLng, 15);
+                    }
+                    
+                    if(pathLine) {
+                        pathLine.setLatLngs(latlngs);
+                    } else {
+                        pathLine = L.polyline(latlngs, {color: '#0084ff', weight: 4, opacity: 0.7}).addTo(map);
+                    }
+                    
+                    document.getElementById('gps-status').innerHTML = '<i class="fas fa-wifi"></i> Tín hiệu tốt';
+                    
+                    var d = new Date(lastLoc.timestamp);
+                    var timeStr = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ':' + d.getSeconds().toString().padStart(2,'0');
+                    document.getElementById('last-update').innerHTML = 'Cập nhật lúc: ' + timeStr;
+                } else {
+                    document.getElementById('gps-status').innerHTML = '<i class="fas fa-exclamation-triangle text-warning"></i> Đang chờ tín hiệu';
+                }
+            })
+            .catch(e => console.error(e));
+    }
+
+    fetchLocation();
+    setInterval(fetchLocation, 5000);
+    /*]]>*/
+</script>
+
+</body>
+</html>

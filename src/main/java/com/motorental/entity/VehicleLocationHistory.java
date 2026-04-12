@@ -21,6 +21,12 @@ public class VehicleLocationHistory {
     @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
 
+    // --- LIÊN KẾT ĐƠN HÀNG ĐỂ THEO DÕI VỊ TRÍ XE THEO ĐƠN ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private RentalOrder order;
+    // --------------------------------------------------------
+
     @Column(name = "latitude")
     private Double latitude;
 

@@ -15,8 +15,20 @@ public class AdminOrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("orders", orderService.getAllOrders());
+    public String list(
+            @RequestParam(name = "status", required = false, defaultValue = "ALL") String status,
+            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+            Model model) {
+        
+        org.springframework.data.domain.PageRequest pageable = org.springframework.data.domain.PageRequest.of(page, 10);
+        org.springframework.data.domain.Page<com.motorental.dto.order.OrderDto> orderPage = orderService.getAllOrdersPageable(status, pageable);
+
+        model.addAttribute("orders", orderPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", orderPage.getTotalPages());
+        model.addAttribute("totalItems", orderPage.getTotalElements());
+        model.addAttribute("currentStatus", status);
+        
         return "admin/orders/list";
     }
 
