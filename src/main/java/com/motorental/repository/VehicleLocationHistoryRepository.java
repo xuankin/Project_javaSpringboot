@@ -15,4 +15,12 @@ public interface VehicleLocationHistoryRepository extends JpaRepository<VehicleL
 
     // Lấy lịch sử theo đơn hàng
     List<VehicleLocationHistory> findTop100ByOrderIdOrderByTimestampDesc(Long orderId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT v FROM VehicleLocationHistory v WHERE v.vehicle.id = :vehicleId " +
+           "AND v.timestamp >= :startDate AND v.timestamp <= :endDate " +
+           "ORDER BY v.timestamp ASC")
+    List<VehicleLocationHistory> findByVehicleIdAndDateRange(
+            @org.springframework.data.repository.query.Param("vehicleId") Long vehicleId,
+            @org.springframework.data.repository.query.Param("startDate") LocalDateTime startDate,
+            @org.springframework.data.repository.query.Param("endDate") LocalDateTime endDate);
 }

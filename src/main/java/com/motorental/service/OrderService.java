@@ -88,7 +88,12 @@ public class OrderService {
 
             if (discountOpt.isPresent() && discountCodeService.isCodeValid(code)) {
                 DiscountCode discount = discountOpt.get();
-                BigDecimal discountAmount = BigDecimal.valueOf(discount.getDiscountPercentage());
+                // TÍNH TOÁN THEO %: (Tổng tiền * % giảm giá) / 100
+                BigDecimal percentage = BigDecimal.valueOf(discount.getDiscountPercentage());
+                BigDecimal discountAmount = originalTotalPrice.multiply(percentage)
+                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+                // Giới hạn số tiền giảm không vượt quá tổng đơn hàng
                 if (discountAmount.compareTo(originalTotalPrice) > 0) {
                     discountAmount = originalTotalPrice;
                 }
@@ -198,6 +203,13 @@ public class OrderService {
         order.setStatus(RentalOrder.OrderStatus.CANCELLED);
         orderRepository.save(order);
         availabilityRepository.deleteByOrderId(orderId);
+        
+        // [FIX] Giải phóng trạng thái xe khi khách hủy đơn
+        order.getOrderDetails().forEach(detail -> {
+            Vehicle v = detail.getVehicle();
+            v.setStatus(Vehicle.VehicleStatus.AVAILABLE);
+            vehicleRepository.save(v);
+        });
     }
 
     @Transactional
@@ -209,10 +221,24 @@ public class OrderService {
 
         if (newStatus == RentalOrder.OrderStatus.CANCELLED) {
             availabilityRepository.deleteByOrderId(orderId);
+        } else if (newStatus == RentalOrder.OrderStatus.CONFIRMED) {
+            // Khi xác nhận (đã thanh toán hoặc duyệt): Chuyển xe sang RENTED để bắt đầu giả lập GPS
+            order.getOrderDetails().forEach(detail -> {
+                Vehicle v = detail.getVehicle();
+                v.setStatus(Vehicle.VehicleStatus.RENTED);
+                vehicleRepository.save(v);
+            });
         } else if (newStatus == RentalOrder.OrderStatus.COMPLETED) {
             // Cập nhật trạng thái availability thành COMPLETED
             // để không block ngày mới khi xe đã được trả
             availabilityRepository.updateStatusByOrderId(orderId, VehicleAvailability.AvailabilityStatus.COMPLETED);
+            
+            // Giải phóng trạng thái xe
+            order.getOrderDetails().forEach(detail -> {
+                Vehicle v = detail.getVehicle();
+                v.setStatus(Vehicle.VehicleStatus.AVAILABLE);
+                vehicleRepository.save(v);
+            });
         }
 
         order.setStatus(newStatus);

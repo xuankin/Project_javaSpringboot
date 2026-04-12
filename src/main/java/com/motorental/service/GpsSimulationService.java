@@ -18,7 +18,7 @@ public class GpsSimulationService {
     private final com.motorental.repository.VehicleLocationHistoryRepository historyRepository;
     private final Random random = new Random();
 
-    @Scheduled(fixedRate = 3000)
+    @Scheduled(fixedRate = 10000)
     public void simulateMovement() {
         List<Vehicle> vehicles = vehicleRepository.findAll();
         
@@ -28,6 +28,12 @@ public class GpsSimulationService {
             if (vehicle.getUpdatedAt() != null &&
                 (System.currentTimeMillis() - vehicle.getUpdatedAt().toInstant(ZoneOffset.UTC).toEpochMilli() < 10000)) {
                 continue;
+            }
+
+            if (vehicle.getLatitude() == null || vehicle.getLongitude() == null) {
+                // Đặt mặc định tại Thủ Đức, TP.HCM cho khớp với khu vực của người dùng
+                vehicle.setLatitude(10.8491);
+                vehicle.setLongitude(106.7720);
             }
 
             if (vehicle.getLatitude() != null && vehicle.getLongitude() != null 

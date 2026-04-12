@@ -138,7 +138,17 @@ public class VehicleService {
 
     @Transactional
     public void deleteVehicle(Long id) {
-        vehicleRepository.deleteById(id);
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe để xóa"));
+        
+        // Xóa các file ảnh vật lý trước
+        if (vehicle.getImages() != null) {
+            for (VehicleImage img : vehicle.getImages()) {
+                deleteFileByUrl(img.getImageUrl());
+            }
+        }
+        
+        vehicleRepository.delete(vehicle);
     }
 
     // --- HELPER FUNCTIONS ---

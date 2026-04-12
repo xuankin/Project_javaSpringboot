@@ -72,7 +72,11 @@ public class PaymentController {
             String previewTxnRef = "VNP" + System.currentTimeMillis();
 
             // Format số tiền dạng tiếng Việt
+<<<<<<< HEAD
             NumberFormat nf = NumberFormat.getInstance(Locale.of("vi", "VN"));
+=======
+            NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
+>>>>>>> feat/system-optimization
             String formattedAmount = nf.format(total) + " VNĐ";
 
             model.addAttribute("orderId", orderId);
@@ -116,12 +120,11 @@ public class PaymentController {
     @GetMapping("/payments/vnpay/callback")
     public String vnpayCallback(HttpServletRequest request, Model model, RedirectAttributes redirectAttributes) {
         try {
-            paymentService.processVNPayCallback(request);
+            boolean isSuccess = paymentService.processVNPayCallback(request);
             String responseCode = request.getParameter("vnp_ResponseCode");
             String txnRef = request.getParameter("vnp_TxnRef");
-            String orderCode = request.getParameter("vnp_OrderInfo");
 
-            // Tìm orderId từ transactionId để redirect đúng trang (dùng indexed query thay vì scan toàn bảng)
+            // Tự động tìm orderId để redirect hoặc hiển thị kết quả chi tiết
             Long orderId = paymentRepository.findByTransactionId(txnRef)
                     .map(p -> p.getRentalOrder() != null ? p.getRentalOrder().getId() : null)
                     .orElse(null);
@@ -129,17 +132,20 @@ public class PaymentController {
             model.addAttribute("responseCode", responseCode);
             model.addAttribute("txnRef", txnRef);
             model.addAttribute("orderId", orderId);
-            model.addAttribute("success", "00".equals(responseCode));
+            model.addAttribute("success", isSuccess);
 
-            if ("00".equals(responseCode)) {
+            if (isSuccess) {
                 log.info("[VNPay Callback] Payment success, txnRef={}", txnRef);
+                redirectAttributes.addFlashAttribute("success", "Thanh toán thành công!");
             } else {
                 log.warn("[VNPay Callback] Payment failed, code={}, txnRef={}", responseCode, txnRef);
+                redirectAttributes.addFlashAttribute("error", "Giao dịch thất bại (Mã: " + responseCode + ")");
             }
 
             return "payments/vnpay-result";
 
         } catch (Exception e) {
+<<<<<<< HEAD
             log.error("[VNPay Callback] Error: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Lỗi xác thực: " + e.getMessage());
             return "redirect:/orders/my-orders";
@@ -182,6 +188,7 @@ public class PaymentController {
             return "redirect:/payments/vnpay/preview/" + orderId;
 
         } catch (Exception e) {
+            log.error("[Retry Payment] Error: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
             return "redirect:/orders/my-orders";
         }
