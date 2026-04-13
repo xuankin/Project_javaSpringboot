@@ -72,11 +72,7 @@ public class PaymentController {
             String previewTxnRef = "VNP" + System.currentTimeMillis();
 
             // Format số tiền dạng tiếng Việt
-<<<<<<< HEAD
             NumberFormat nf = NumberFormat.getInstance(Locale.of("vi", "VN"));
-=======
-            NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
->>>>>>> feat/system-optimization
             String formattedAmount = nf.format(total) + " VNĐ";
 
             model.addAttribute("orderId", orderId);
@@ -136,16 +132,14 @@ public class PaymentController {
 
             if (isSuccess) {
                 log.info("[VNPay Callback] Payment success, txnRef={}", txnRef);
-                redirectAttributes.addFlashAttribute("success", "Thanh toán thành công!");
+                return "redirect:/payments/success";
             } else {
                 log.warn("[VNPay Callback] Payment failed, code={}, txnRef={}", responseCode, txnRef);
                 redirectAttributes.addFlashAttribute("error", "Giao dịch thất bại (Mã: " + responseCode + ")");
+                return "payments/vnpay-result";
             }
 
-            return "payments/vnpay-result";
-
         } catch (Exception e) {
-<<<<<<< HEAD
             log.error("[VNPay Callback] Error: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Lỗi xác thực: " + e.getMessage());
             return "redirect:/orders/my-orders";
@@ -192,5 +186,10 @@ public class PaymentController {
             redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
             return "redirect:/orders/my-orders";
         }
+    }
+
+    @GetMapping("/payments/success")
+    public String showSuccessPage() {
+        return "payments/success";
     }
 }
