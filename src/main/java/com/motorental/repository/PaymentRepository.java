@@ -21,8 +21,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Optional<Payment> findByRentalOrderId(Long rentalOrderId);
 
-    // Tìm payment theo mã giao dịch VNPay (dùng cho callback và IPN)
-    Optional<Payment> findByTransactionId(String transactionId);
 
     @Query("SELECT p FROM Payment p WHERE p.rentalOrder.user.id = :userId ORDER BY p.paymentDate DESC") // [Optional] Sửa createdAt -> paymentDate nếu cần
     Page<Payment> findByUserId(@Param("userId") String userId, Pageable pageable);
