@@ -115,7 +115,7 @@ public class PaymentController {
             boolean isSuccess = paymentService.processVNPayCallback(request);
             
             if (isSuccess) {
-                redirectAttributes.addFlashAttribute("success", "Thanh toán thành công! Đơn hàng đã được xác nhận.");
+                return "redirect:/payments/success";
             } else {
                 String responseCode = request.getParameter("vnp_ResponseCode");
                 redirectAttributes.addFlashAttribute("error", "Giao dịch không thành công hoặc chữ ký không hợp lệ. (Mã: " + responseCode + ")");
@@ -125,5 +125,10 @@ public class PaymentController {
             redirectAttributes.addFlashAttribute("error", "Lỗi xử lý thanh toán: " + e.getMessage());
         }
         return "redirect:/orders/my-orders";
+    }
+
+    @GetMapping("/payments/success")
+    public String showSuccessPage() {
+        return "payments/success";
     }
 }
