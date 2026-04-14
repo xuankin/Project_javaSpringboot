@@ -48,7 +48,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
                                 "/payments/vnpay/ipn",
-                                "/payments/vnpay/callback"
+                                "/payments/vnpay/callback",
+                                "/api/tracking/update-location"
                         )
                 )
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))

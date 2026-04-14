@@ -5,10 +5,27 @@
 <head>
     <title>Bản đồ theo dõi toàn bộ xe</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <style>
-        #adminMap { height: 750px; width: 100%; border-radius: 8px; }
+        #adminMap { height: 750px; width: 100%; border-radius: 0 8px 8px 0; }
         .vehicle-popup img { width: 100%; height: auto; border-radius: 4px; margin-top: 5px; }
         .status-badge { font-size: 0.8rem; padding: 2px 6px; }
+        .cursor-pointer { cursor: pointer; }
+        .vehicle-list-item:hover { background-color: #f8f9fa; }
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 123, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+        }
+        .pulse-marker-blue {
+            background-color: #007bff !important;
+            width: 18px !important;
+            height: 18px !important;
+            border-radius: 50%;
+            border: 2px solid white;
+            animation: pulse-blue 1.5s infinite;
+            transform: translate(-3px, -3px);
+        }
     </style>
 </head>
 <body>
@@ -22,13 +39,31 @@
         </div>
     </div>
 
-    <div class="card shadow">
-        <div class="card-body p-0">
-            <div id="adminMap"></div>
+    <div class="row">
+        <div class="col-md-3 pe-0">
+            <div class="card shadow h-100 border-end-0 rounded-start">
+                <div class="card-header bg-primary text-white d-flex align-items-center rounded-top-start">
+                    <i class="fas fa-users me-2"></i>
+                    <h5 class="mb-0 fs-6">Người dùng Tracking</h5>
+                </div>
+                <div class="card-body p-0" style="max-height: 700px; overflow-y: auto;" id="rentedVehicleList">
+                    <!-- Danh sách user sẽ được render bằng JS -->
+                    <div class="p-3 text-muted text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-9 ps-0">
+            <div class="card shadow rounded-end">
+                <div class="card-body p-0">
+                    <div id="adminMap"></div>
+                </div>
+            </div>
         </div>
     </div>
 
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
         document.addEventListener('DOMContentLoaded', function() {
@@ -41,22 +76,30 @@
             }).addTo(map);
 
             function addOrUpdateMarker(v) {
-                if (!v.latitude || !v.longitude) return;
+                const lat = v.lat || v.latitude;
+                const lng = v.lng || v.longitude;
+                if (!lat || !lng) return;
 
-                const color = v.status === 'AVAILABLE' ? 'green' : (v.status === 'RENTED' ? 'orange' : 'gray');
+                const statusStr = (v.status || '').toUpperCase();
+                const color = (statusStr === 'AVAILABLE' || statusStr === 'USER') ? 'green' : 'gray';
+                const isRented = statusStr === 'RENTED';
+                const iconHtml = isRented 
+                    ? `<div class="pulse-marker-blue"></div>` 
+                    : `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`;
+
                 const icon = L.divIcon({
                     className: 'custom-div-icon',
-                    html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
-                    iconSize: [12, 12],
-                    iconAnchor: [6, 6]
+                    html: iconHtml,
+                    iconSize: isRented ? [18, 18] : [14, 14],
+                    iconAnchor: isRented ? [9, 9] : [7, 7]
                 });
 
                 const popupContent = `
                     <div class="vehicle-popup" style="width: 150px;">
                         <strong>${v.name}</strong><br>
                         <small>${v.licensePlate}</small><br>
-                        <span class="badge bg-${v.status === 'AVAILABLE' ? 'success' : (v.status === 'RENTED' ? 'warning' : 'secondary')} status-badge">${v.status}</span>
-                        ${v.primaryImageUrl ? `<img src="${v.primaryImageUrl}">` : ''}
+                        <span class="badge bg-${statusStr === 'AVAILABLE' ? 'success' : (statusStr === 'RENTED' ? 'warning' : 'secondary')} status-badge">${v.status}</span>
+                        ${v.primaryImageUrl || v.image ? `<img src="${v.primaryImageUrl || v.image}">` : ''}
                         <div class="mt-2 text-center">
                             <a href="/admin/vehicles/edit/${v.id}" class="btn btn-sm btn-primary w-100">Chi tiết</a>
                         </div>
@@ -65,42 +108,157 @@
 
                 if (markerMap.has(v.id)) {
                     const marker = markerMap.get(v.id);
-                    marker.setLatLng([v.latitude, v.longitude]);
+                    marker.setLatLng([lat, lng]);
                 } else {
-                    const marker = L.marker([v.latitude, v.longitude], { icon: icon })
+                    const marker = L.marker([lat, lng], { icon: icon })
                         .addTo(map)
                         .bindPopup(popupContent);
                     markerMap.set(v.id, marker);
                 }
             }
 
+            // Function để render danh sách bên trái
+            let currentRoute = null;
+
+            function renderUsersList(list) {
+                const listContainer = document.getElementById('rentedVehicleList');
+                if(!listContainer) return;
+
+                const users = list.filter(v => (v.status || '').toUpperCase() === 'USER');
+
+                if (users.length === 0) {
+                    listContainer.innerHTML = '<div class="p-4 text-muted text-center"><i class="fas fa-user-slash mb-2" style="font-size: 24px;"></i><br>Chưa có dữ liệu người dùng</div>';
+                    return;
+                }
+
+                let html = '<ul class="list-group list-group-flush">';
+                users.forEach(u => {
+                    html += `
+                        <li class="list-group-item list-group-item-action cursor-pointer vehicle-list-item py-3" 
+                            onclick="showUserRoute('${u.realId}', '${u.id}')">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <h6 class="mb-1 text-primary fw-bold text-truncate" style="max-width: 70%;">${u.name}</h6>
+                                <span class="badge bg-info text-dark"><i class="fas fa-history"></i> Lịch trình</span>
+                            </div>
+                            <small class="text-muted"><i class="fas fa-envelope"></i> ${u.licensePlate || 'N/A'}</small>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                listContainer.innerHTML = html;
+            }
+
+            window.flyToMarker = function(id) {
+                let markerId = isNaN(id) || id.startsWith("user-") ? id : Number(id);
+                if (markerMap.has(markerId)) {
+                    const marker = markerMap.get(markerId);
+                    map.flyTo(marker.getLatLng(), 17, { animate: true, duration: 1.5 });
+                    marker.openPopup();
+                } else {
+                    const altId = isNaN(id) ? id : id.toString();
+                    if (markerMap.has(altId)) {
+                        const marker = markerMap.get(altId);
+                        map.flyTo(marker.getLatLng(), 17, { animate: true, duration: 1.5 });
+                        marker.openPopup();
+                    }
+                }
+            };
+
+            window.showUserRoute = function(realId, markerId) {
+                flyToMarker(markerId);
+
+                // Xóa đường cũ nếu có
+                if (currentRoute) {
+                    map.removeControl(currentRoute);
+                    currentRoute = null;
+                }
+
+                // Lấy lịch trình 1 tuần
+                fetch(`/api/tracking/user-history/${realId}`)
+                    .then(res => res.json())
+                    .then(coords => {
+                        if (coords && coords.length > 1) {
+                            // Để tránh lỗi API OSRM (chỉ cho phép giới hạn số điểm waypoint),
+                            // Lọc mượt mà xuống tối đa 25 điểm.
+                            let waypoints = coords;
+                            if (waypoints.length > 25) {
+                                const step = Math.floor(waypoints.length / 25);
+                                waypoints = coords.filter((c, i) => i % step === 0 || i === coords.length - 1);
+                            }
+                            
+                            const latlngs = waypoints.map(c => L.latLng(c.lat, c.lng));
+                            
+                            currentRoute = L.Routing.control({
+                                waypoints: latlngs,
+                                lineOptions: {
+                                    styles: [{color: '#007bff', opacity: 0.8, weight: 6}]
+                                },
+                                show: false, // Ẩn bảng hướng dẫn turn-by-turn
+                                addWaypoints: false,
+                                routeWhileDragging: false,
+                                fitSelectedRoutes: true,
+                                createMarker: function() { return null; } // Ẩn marker trung gian
+                            }).addTo(map);
+
+                        } else if (coords && coords.length === 1) {
+                            alert("Người dùng này chỉ mới cập nhật 1 điểm vị trí, chưa đủ để vẽ đường đi.");
+                        } else {
+                            alert("Không tìm thấy dữ liệu di chuyển của người dùng này trong 1 tuần qua.");
+                        }
+                    })
+                    .catch(err => console.error("Lỗi lấy lịch trình: ", err));
+            };
+
             // Init
             vehicles.forEach(addOrUpdateMarker);
+            renderUsersList(vehicles);
+
             if (markerMap.size > 0) {
                 const group = new L.featureGroup(Array.from(markerMap.values()));
                 map.fitBounds(group.getBounds().pad(0.1));
             }
 
-            // Real-time update (Polling ALL vehicles at once)
+            // Real-time update (Polling ALL vehicles and Users at once)
             setInterval(() => {
-                fetch('/api/vehicles/all-locations')
-                    .then(res => res.json())
-                    .then(dataList => {
-                        dataList.forEach(v => {
-                            if (v.lat && v.lng) {
-                                if (markerMap.has(v.id)) {
-                                    markerMap.get(v.id).setLatLng([v.lat, v.lng]);
-                                    // Cập nhật popup nếu đang mở
-                                    const marker = markerMap.get(v.id);
-                                    if (marker.getPopup() && marker.getPopup().isOpen()) {
-                                        // (Optional) Update popup content if needed
-                                    }
-                                } else {
-                                    addOrUpdateMarker(v);
+                Promise.all([
+                    fetch('/api/vehicles/all-locations').then(res => res.json()),
+                    fetch('/api/tracking/tracked-users').then(res => res.json())
+                ])
+                .then(([vehicles, users]) => {
+                    const dataList = vehicles.concat(users);
+                    dataList.forEach(v => {
+                        if (v.lat && v.lng) {
+                            if (markerMap.has(v.id)) {
+                                const marker = markerMap.get(v.id);
+                                marker.setLatLng([v.lat, v.lng]);
+                                
+                                // Cập nhật icon/màu sắc nếu trạng thái thay đổi
+                                const statusStr = (v.status || '').toUpperCase();
+                                const baseColor = (statusStr === 'AVAILABLE' || statusStr === 'USER') ? 'green' : 'gray';
+                                const isRented = statusStr === 'RENTED';
+                                const iconHtml = isRented 
+                                    ? `<div class="pulse-marker-blue"></div>` 
+                                    : `<div style="background-color: ${baseColor}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`;
+                                
+                                // Kiểm tra xem icon hiện tại có khác không (để tránh render lại liên tục)
+                                if (!marker.options.icon.options || marker.options.icon.options.html !== iconHtml) {
+                                    marker.setIcon(L.divIcon({
+                                        className: 'custom-div-icon',
+                                        html: iconHtml,
+                                        iconSize: isRented ? [18, 18] : [14, 14],
+                                        iconAnchor: isRented ? [9, 9] : [7, 7]
+                                    }));
                                 }
+                            } else {
+                                addOrUpdateMarker(v);
                             }
-                        });
+                        }
                     });
+                    
+                    // Cập nhật lại UI Sidebar
+                    renderUsersList(dataList);
+                    
+                }).catch(e => console.error("Error fetching map data: ", e));
             }, 5000);
         });
         /*]]>*/

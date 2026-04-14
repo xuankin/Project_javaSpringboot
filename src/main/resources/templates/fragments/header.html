@@ -147,9 +147,17 @@
     function updateMyRealtimeLocation() {
         if (!("geolocation" in navigator)) return;
         navigator.geolocation.getCurrentPosition(function(position) {
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+            
+            const headers = { 'Content-Type': 'application/json' };
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader] = csrfToken;
+            }
+
             fetch('/api/tracking/update-location', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify({
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
@@ -162,9 +170,9 @@
         checkUnreadMsgs();
         loadChatScripts();
 
-        // Update location every 2 minutes
+        // Update location every 30 seconds
         updateMyRealtimeLocation();
-        setInterval(updateMyRealtimeLocation, 120000); 
+        setInterval(updateMyRealtimeLocation, 30000); 
     });
 </script>
 </html>
